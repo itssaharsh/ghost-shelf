@@ -1,7 +1,7 @@
 import { makeQlooClient } from "@/lib/qloo";
 import { recover } from "@/lib/recover";
 import { clientKey, limiterFor } from "@/lib/ratelimit";
-import { rememberRequest } from "@/lib/runs";
+import { getRepo } from "@/db";
 import type { Seed } from "@/lib/schemas";
 
 const KINDS = new Set(["film", "band", "artist", "author", "book", "tv", "other"]);
@@ -28,6 +28,6 @@ export async function POST(request: Request) {
   }
   const excludeIsbns = Array.isArray(body.excludeIsbns) ? body.excludeIsbns.filter((x) => typeof x === "string").slice(0, 20) : [];
   const result = await recover({ runId, seeds, excludeIsbns }, makeQlooClient());
-  if (result.request) rememberRequest(runId, result.request);
+  await getRepo().upsertRun({ id: runId, seeds: result.seeds, mode: result.mode, request: result.request ?? null, books: result.books.map((b) => ({ isbn13: b.isbn13, title: b.title })) });
   return Response.json(result);
 }

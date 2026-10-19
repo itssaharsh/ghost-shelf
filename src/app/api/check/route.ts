@@ -1,3 +1,4 @@
+import { getRepo } from "@/db";
 import { runCheck } from "@/lib/check";
 import type { CheckEvent } from "@/lib/schemas";
 
@@ -15,7 +16,9 @@ export async function GET(request: Request) {
     async start(controller) {
       const send = (e: CheckEvent) => controller.enqueue(encoder.encode(`event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`));
       try {
-        await runCheck({ title, author }, send);
+        const runId = crypto.randomUUID();
+        const verdict = await runCheck({ title, author }, send, undefined, runId);
+        await getRepo().upsertRun({ id: runId, title, author, verdictKind: verdict.kind, checked: verdict.checked, failed: verdict.failed });
       } catch (err) {
         controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({ message: err instanceof Error ? err.message : "check failed" })}\n\n`));
       } finally {

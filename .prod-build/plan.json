@@ -185,10 +185,15 @@
         "npm run build"
       ],
       "rollback": "git revert",
-      "status": "doing",
+      "status": "done",
       "notes": "UI-SPEC §5 S1 layout; styling comes in T06",
       "base": "ea6d7ea",
-      "started_after": 13
+      "started_after": 13,
+      "evidence": [
+        "E0023",
+        "E0024",
+        "E0025"
+      ]
     },
     {
       "id": "T05",
@@ -229,8 +234,16 @@
       "risk": [
         "migration"
       ],
-      "status": "todo",
-      "notes": "Neon provisioning needs the account owner to accept the Marketplace terms (vercel integration add neon); until DATABASE_URL exists the routes use the in-memory adapter locally and the deploy stays in that mode with a visible label"
+      "status": "done",
+      "notes": "Neon provisioning needs the account owner to accept the Marketplace terms (vercel integration add neon); until DATABASE_URL exists the routes use the in-memory adapter locally and the deploy stays in that mode with a visible label",
+      "base": "718f6f9",
+      "started_after": 22,
+      "evidence": [
+        "E0028",
+        "E0029",
+        "E0030",
+        "E0031"
+      ]
     },
     {
       "id": "T06",

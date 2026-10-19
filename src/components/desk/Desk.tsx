@@ -18,7 +18,7 @@ type ActionState = "idle" | "busy" | "done" | "error";
 type Drawers = Partial<Record<SourceName, Drawer>>;
 const fresh = (sources: SourceName[], status: DrawerStatus): Drawers => Object.fromEntries(sources.map((s) => [s, { source: s, status }]));
 
-export function Desk({ presets, sources, collectionSize, qlooConfigured, demo }: { presets: Preset[]; sources: SourceName[]; collectionSize: number; qlooConfigured: boolean; demo: boolean }) {
+export function Desk({ presets, sources, collectionSize, qlooConfigured, storage, demo }: { presets: Preset[]; sources: SourceName[]; collectionSize: number; qlooConfigured: boolean; storage: "memory" | "postgres"; demo: boolean }) {
   const [title, setTitle] = useState(presets[0]?.title ?? "");
   const [author, setAuthor] = useState(presets[0]?.author ?? "");
   const [activePreset, setActivePreset] = useState<string | null>(presets[0]?.id ?? null);
@@ -273,7 +273,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, demo }:
             <p className="text-[13px] text-ink-muted leading-[1.45]">
               Demo collection: about {collectionSize.toLocaleString("en-US")} most-borrowed 2025 titles at Seattle Public Library (public domain).{" "}
               {shelf.result ? (shelf.result.mode === "qloo" ? "Books ranked by Qloo, a taste database." : modeNote) : qlooConfigured ? "Books ranked by Qloo, a taste database." : "Sample mode until the Qloo key is active."}{" "}
-              Covers from Open Library.
+              Covers from Open Library.{storage === "memory" ? " Holds and the registry live in memory until the database is connected; they reset on deploy." : ""}
             </p>
             <div className="hidden lg:flex gap-3 items-center flex-wrap">
               <button
