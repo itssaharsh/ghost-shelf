@@ -153,8 +153,15 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
             }
           },
           (message) => {
+            // the stream died (offline, a 429, a server error): every drawer still open says so, and the card names the failure
+            setDrawers((d) => {
+              const next = { ...d };
+              for (const s of sources) if (next[s]?.status !== "done") next[s] = { source: s, status: "done", result: { source: s, result: "failed", ms: 0, detail: "did not answer (no connection)" } };
+              return next;
+            });
             setCheckError(message);
             setPhase("checked");
+            announce(message);
           },
         );
       };
