@@ -3,7 +3,7 @@ Updated: 2026-10-19 | mode: hackathon | channel: direct | phase: 4-gates-and-tak
 
 ## Now
 - Phase / current task: T08 backup take recording (demo/storyboard.json against the live URL); T11 blocked on the Qloo key; T14/T15 pending
-- Last good commit: see `git log -1`            Last good deploy: https://ghost-shelf.vercel.app (2026-10-19, memory storage, sample mode)
+- Last good commit: see `git log -1`            Last good deploy: https://ghost-shelf.vercel.app (2026-10-19, Neon Postgres, sample mode until the key)
 
 ## What worked (with evidence IDs)
 - Golden path and every ?state= at 1440/390/320 on the live URL (E0078); QA script: demo x3 with reset, offline injection, axe 0 violations (E0079)
@@ -18,12 +18,10 @@ Updated: 2026-10-19 | mode: hackathon | channel: direct | phase: 4-gates-and-tak
 
 ## Not tried yet / open questions
 - Qloo key (A-1): requested by the builder; when it arrives: set QLOO_API_KEY on Vercel, `npm run map:build`, redeploy, record T11 evidence, re-record the final take
-- Neon: account owner must accept the Marketplace terms; then `vercel env pull`, `npm run db:push && npm run db:seed`, redeploy
-- Devpost rules page in a browser: deadline hour, pre-existing-work rule (clock is PROVISIONAL)
 
 ## Changes that need care (migrations applied, deploys, destructive ops)
-- No database yet (memory per instance on Vercel); no migrations applied
-- GitHub repo itssaharsh/ghost-shelf is PRIVATE until submission
+- Neon connected 2026-10-19: schema pushed with drizzle-kit, ten example rows seeded; smoke rows removed
+- GitHub repo itssaharsh/ghost-shelf is PUBLIC (2026-10-19)
 
 ## Backup take
 - demo/final.mp4 (after compose) with demo/script.md and demo/thumbnail; storyboard demo/storyboard.json; sample mode stated in the narration

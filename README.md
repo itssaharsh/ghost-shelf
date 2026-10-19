@@ -54,7 +54,7 @@ The desk is a small agent with the librarian in the loop: it checks three source
 | Variable | Purpose |
 |---|---|
 | `QLOO_API_KEY` | The Qloo hackathon key. The client only ever calls `https://hackathon.api.qloo.com`, sends the key in the `X-Api-Key` header, never in a URL, a log, a response or the client bundle. Absent: sample mode, labelled. |
-| `DATABASE_URL` | Neon Postgres for runs, holds, the registry, the holdings map and a small cache. Absent: an in-memory store per server instance, labelled on the desk and the registry page; it resets on deploy and does not share state between instances. The live demo runs this way until the database is connected. |
+| `DATABASE_URL` | Neon Postgres for runs, holds, the registry, the holdings map and a small cache. Absent: an in-memory store per server instance, labelled on the desk and the registry page; it resets on deploy. The live demo runs on Neon. |
 | `GOOGLE_BOOKS_API_KEY` | Optional. With it, Google Books is the third check; without it, the Internet Archive (keyless) takes the third drawer, because Google Books rate-limits keyless hosts. |
 | Rate limits | 20 a minute per IP on the write routes, 30 on checks, 120 on reads, 240 on covers; counted per server instance. |
 | `NEXT_PUBLIC_DEMO` | `1` shows the judge card by default on the demo deployment (`?judge=0` hides it, `?judge=1` shows it anywhere). |
@@ -96,7 +96,7 @@ No Qloo response data is stored in this repository: `data/` holds the collection
 
 ## Limits
 
-Recent and small-press titles may be missing from the sources checked, so the card never says a book does not exist. The collection is a demo slice of one library's data. Holds and the registry are this demo's own. Until the database is connected, records live in memory and reset on deploy; until the Qloo key is active, the shelf runs in sample mode and says so.
+Recent and small-press titles may be missing from the sources checked, so the card never says a book does not exist. The collection is a demo slice of one library's data. Holds and the registry are this demo's own. Until the Qloo key is active, the shelf runs in sample mode and says so.
 
 ## Timeline and tools
 
