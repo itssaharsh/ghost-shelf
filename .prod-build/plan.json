@@ -315,10 +315,16 @@
       "risk": [
         "external-side-effect"
       ],
-      "status": "doing",
+      "status": "done",
       "notes": "",
       "base": "5f456ad",
-      "started_after": 50
+      "started_after": 50,
+      "evidence": [
+        "E0060",
+        "E0061",
+        "E0062",
+        "E0063"
+      ]
     },
     {
       "id": "T08",
@@ -390,8 +396,10 @@
         "npm run build"
       ],
       "rollback": "git revert",
-      "status": "todo",
-      "notes": "SHOULD; skip if the clock is short"
+      "status": "doing",
+      "notes": "SHOULD; skip if the clock is short",
+      "base": "dbcd942",
+      "started_after": 63
     },
     {
       "id": "T11",
