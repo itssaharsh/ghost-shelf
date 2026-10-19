@@ -102,8 +102,15 @@
         "npm test -- tests/check.test.ts"
       ],
       "rollback": "git revert",
-      "status": "todo",
-      "notes": "RED first on the verdict rules with injected source results"
+      "status": "done",
+      "notes": "RED first on the verdict rules with injected source results",
+      "base": "2c7e8fb",
+      "started_after": 5,
+      "evidence": [
+        "E0006",
+        "E0007",
+        "E0008"
+      ]
     },
     {
       "id": "T03",
