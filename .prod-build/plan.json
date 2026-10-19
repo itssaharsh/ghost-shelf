@@ -146,8 +146,17 @@
         "npm test -- tests/qloo-live.test.ts"
       ],
       "rollback": "git revert",
-      "status": "todo",
-      "notes": "the live client is unit-tested against recorded-shape fixtures written by hand from the docs, not Qloo responses; the first real call happens when the key arrives (A-1)"
+      "status": "done",
+      "notes": "the live client is unit-tested against recorded-shape fixtures written by hand from the docs, not Qloo responses; the first real call happens when the key arrives (A-1)",
+      "base": "7fa11a7",
+      "started_after": 8,
+      "evidence": [
+        "E0009",
+        "E0010",
+        "E0011",
+        "E0012",
+        "E0013"
+      ]
     },
     {
       "id": "T04",
