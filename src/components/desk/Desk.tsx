@@ -322,7 +322,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
       </div>
 
       {/* Presets */}
-      <div className="no-print border-b border-line px-4 sm:px-8 lg:px-20 py-2.5">
+      <div className="no-print border-b border-line px-4 sm:px-8 lg:px-20 py-2 sm:py-2.5">
         <div className="flex items-center gap-2.5 overflow-x-auto [scrollbar-width:thin]" role="group" aria-label="Try one">
           <span className="text-[13px] text-ink-muted shrink-0">Try one:</span>
           {presets.map((p) => {
@@ -346,7 +346,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
         </div>
       </div>
 
-      <div className="relative flex-1 px-4 sm:px-8 lg:px-20 pt-6 pb-28 lg:pb-10 max-w-[1440px] w-full mx-auto">
+      <div className="relative flex-1 px-4 sm:px-8 lg:px-20 pt-4 sm:pt-6 pb-28 lg:pb-10 max-w-[1440px] w-full mx-auto">
         {judgeCard && (
           <aside className="judge-card no-print lg:absolute lg:right-20 lg:top-0 lg:w-[360px] mb-4 lg:mb-0 bg-card-stock border border-line rounded-md p-3 text-[13px] leading-[1.45] flex gap-3 items-start" aria-label="How to judge this">
             <div className="flex-1">
@@ -362,9 +362,9 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-6 gap-y-6 lg:mt-14">
           {/* LEFT: title, drawers, patron card, seeds */}
-          <section className="lg:col-span-7 flex flex-col gap-4" aria-label="Check a title">
+          <section className="lg:col-span-7 flex flex-col gap-3 sm:gap-4" aria-label="Check a title">
             <form
-              className="flex flex-col sm:flex-row sm:items-end gap-3"
+              className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 setActivePreset(null);
@@ -403,7 +403,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
               </p>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" aria-label="The three checks">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3" aria-label="The three checks">
               {sources.map((s) => (
                 <DrawerView key={s} drawer={drawers[s] ?? { source: s, status: "closed" }} collectionSize={collectionSize} onRetry={replay} />
               ))}
@@ -489,12 +489,14 @@ function DrawerView({ drawer, collectionSize, onRetry }: { drawer: Drawer; colle
       : "";
   return (
     <section aria-labelledby={`drawer-${drawer.source}`} aria-busy={drawer.status === "opening" || undefined} className="border border-line sm:min-h-[152px] flex flex-row sm:flex-col items-stretch">
-      <h3 id={`drawer-${drawer.source}`} className="m-0 px-3 py-[7px] font-display font-bold text-[13px] uppercase tracking-[0.08em] border-r sm:border-r-0 sm:border-b border-line w-[104px] min-[400px]:w-[112px] sm:w-auto shrink-0 flex items-center sm:block">
+      <h3 id={`drawer-${drawer.source}`} className="m-0 px-3 py-1.5 sm:py-[7px] font-display font-bold text-[13px] uppercase tracking-[0.08em] border-r sm:border-r-0 sm:border-b border-line w-[104px] min-[400px]:w-[112px] sm:w-auto shrink-0 flex items-center sm:block">
         {SOURCE_LABEL[drawer.source]}
       </h3>
-      <div data-open={open} className="drawer-card m-2 sm:m-2.5 flex-1 min-w-0 bg-card-stock border border-line rounded-md shadow-[var(--shadow-raised)] px-3 py-2 sm:p-3 font-display">
-        <div className={`text-[15px] ${failed ? "text-ink-muted" : "text-ink"}`}>{headline}</div>
-        <div className="text-[13px] text-ink-muted mt-0.5 sm:mt-1 tnum">{detail}</div>
+      <div data-open={open} className="drawer-card m-1.5 sm:m-2.5 flex-1 min-w-0 bg-card-stock border border-line rounded-md shadow-[var(--shadow-raised)] px-3 py-1.5 sm:p-3 font-display">
+        <div className="flex flex-wrap items-baseline gap-x-2 sm:block">
+          <div className={`text-[15px] ${failed ? "text-ink-muted" : "text-ink"}`}>{headline}</div>
+          <div className="text-[13px] text-ink-muted sm:mt-1 tnum">{detail}</div>
+        </div>
         {r?.titleOnlyBy && <div className="text-[13px] text-ink-muted mt-1">a book with this title exists by {r.titleOnlyBy}</div>}
         <div className="flex gap-3 flex-wrap">
           {failed && (
@@ -503,7 +505,7 @@ function DrawerView({ drawer, collectionSize, onRetry }: { drawer: Drawer; colle
             </button>
           )}
           {r?.link && (
-            <a href={r.link} target="_blank" rel="noreferrer" className="text-[13px] text-ink-muted underline underline-offset-2 mt-1 inline-block">
+            <a href={r.link} target="_blank" rel="noreferrer" className="hidden sm:inline-block text-[13px] text-ink-muted underline underline-offset-2 mt-1">
               search {SOURCE_LABEL[drawer.source]}&nbsp;↗
             </a>
           )}

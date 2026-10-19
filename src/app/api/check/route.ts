@@ -1,11 +1,14 @@
 import { getRepo } from "@/db";
 import { runCheck } from "@/lib/check";
+import { clientKey, limiterFor } from "@/lib/ratelimit";
 import type { CheckEvent } from "@/lib/schemas";
 
 // Reading request.url makes this handler run at request time under Cache Components; no segment config needed.
 const MAX_TITLE = 200;
 
 export async function GET(request: Request) {
+  // each check fans out to two public APIs; 30 a minute per IP is a busy desk, not a crawler
+  if (!limiterFor("check", 30).allow(clientKey(request))) return Response.json({ error: "Too many requests; try again in a minute" }, { status: 429 });
   const url = new URL(request.url);
   const title = (url.searchParams.get("title") ?? "").slice(0, MAX_TITLE).trim();
   const author = (url.searchParams.get("author") ?? "").slice(0, MAX_TITLE).trim();

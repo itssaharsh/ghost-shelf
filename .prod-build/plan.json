@@ -371,10 +371,11 @@
         "npm run build"
       ],
       "rollback": "git revert",
-      "status": "doing",
-      "notes": "",
+      "status": "done",
+      "notes": "[2026-10-19 done] rules check: the file and section rules pass (license, README sections, host-only, no Qloo data); public-repo and eligibility are attestations for T15 (the repository goes public at submission; eligibility is the builder's own attestation)",
       "base": "8d3dea3",
-      "started_after": 67
+      "started_after": 67,
+      "evidence": []
     },
     {
       "id": "T10",
@@ -455,8 +456,10 @@
         "observe: foldcheck pass recorded on the live URL"
       ],
       "rollback": "n/a",
-      "status": "todo",
-      "notes": "the merged gate task for hackathon mode"
+      "status": "doing",
+      "notes": "the merged gate task for hackathon mode",
+      "base": "1116519",
+      "started_after": 70
     },
     {
       "id": "T13",

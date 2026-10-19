@@ -22,6 +22,7 @@ export function createLimiter(limit = 20, windowMs = 60_000, now: () => number =
 }
 
 const limiters = new Map<string, Limiter>();
+/** Per process: on Fluid compute a warm instance serves many requests, so this bounds a burst, not a distributed flood. A shared store would be the next step. */
 export function limiterFor(name: string, limit = 20, windowMs = 60_000): Limiter {
   let l = limiters.get(name);
   if (!l) {

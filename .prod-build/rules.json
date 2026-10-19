@@ -6,7 +6,11 @@
       "source": "https://ainave.com/events/hackathons/qloo-agentic-hackathon (relayed listing text; qloo.devpost.com/rules refused the fetch tool)",
       "dq": true,
       "kind": "attest",
-      "added": "2026-10-19T13:34:46Z"
+      "added": "2026-10-19T13:34:46Z",
+      "confirmed": {
+        "evidence": "https://ghost-shelf.vercel.app opens signed out; fresh-context browser pass at 1440 and 390 (E0052), smoke on /, /invented, /about, /lists, /api/registry (E0070), /api/check streams three source events from the live URL (E0056)",
+        "at": "2026-10-19T16:53:13Z"
+      }
     },
     {
       "id": "public-repo",

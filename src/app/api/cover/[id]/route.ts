@@ -1,13 +1,16 @@
 // Cover proxy: covers by Open Library cover id, served same-origin with a long CDN cache.
 // Older covers upstream redirect twice into archive.org zip files and take seconds; the CDN cache pays that once per cover.
+import { clientKey, limiterFor } from "@/lib/ratelimit";
+
 const UPSTREAM = "https://covers.openlibrary.org/b/id/";
 const MISS = { status: 404, headers: { "cache-control": "public, max-age=3600" } };
 // A small in-process cache for warm instances and local runs; the CDN cache does the real work in production.
 const MEM = new Map<string, { type: string; bytes: ArrayBuffer }>();
 const MEM_MAX = 300;
 
-export async function GET(_request: Request, ctx: RouteContext<"/api/cover/[id]">) {
+export async function GET(request: Request, ctx: RouteContext<"/api/cover/[id]">) {
   const { id } = await ctx.params;
+  if (!limiterFor("cover", 240).allow(clientKey(request))) return new Response("Too many requests", { status: 429, headers: { "cache-control": "no-store" } });
   if (!/^\d{1,12}$/.test(id)) return new Response("bad id", { status: 400 });
   const hit = MEM.get(id);
   if (hit) return new Response(hit.bytes.slice(0), { headers: { "content-type": hit.type, "cache-control": "public, max-age=86400, s-maxage=31536000, stale-while-revalidate=86400", "x-cover-source": "memory" } });
