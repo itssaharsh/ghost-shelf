@@ -3,12 +3,11 @@
   "start": "2026-09-30T13:30:00Z",
   "end": "2026-10-31T03:45:00Z",
   "freeze": "2026-10-30T03:45:00Z",
-  "source": "https://devpost.com/api/hackathons?search=qloo (dates); https://ainave.com/events/hackathons/qloo-agentic-hackathon (hours; the Devpost pages refused the fetch tool)",
-  "provisional": "start and end hours come from a third-party repost of the listing; qloo.devpost.com/rules refused the fetch tool; re-read in a browser",
+  "source": "qloo.devpost.com page read by the builder on 2026-10-19: Deadline Oct 31, 2026 @ 9:15am GMT+5:30; start date from the Devpost listing API",
   "history": "strict",
   "tz_min": 330,
   "sponsors": [
     "Qloo"
   ],
-  "set_at": "2026-10-19T13:33:42Z"
+  "set_at": "2026-10-19T18:16:59Z"
 }

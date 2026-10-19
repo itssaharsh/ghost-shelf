@@ -18,7 +18,11 @@
       "source": "https://ainave.com/events/hackathons/qloo-agentic-hackathon (relayed listing text; qloo.devpost.com/rules refused the fetch tool)",
       "dq": true,
       "kind": "attest",
-      "added": "2026-10-19T13:34:46Z"
+      "added": "2026-10-19T13:34:46Z",
+      "confirmed": {
+        "evidence": "gh repo view itssaharsh/ghost-shelf reports visibility PUBLIC on 2026-10-19; LICENSE (MIT) at the root shows in the About section; README has run instructions",
+        "at": "2026-10-19T18:16:58Z"
+      }
     },
     {
       "id": "oss-license",
@@ -82,7 +86,11 @@
       "source": "https://ainave.com/events/hackathons/qloo-agentic-hackathon (relayed listing text; qloo.devpost.com/rules refused the fetch tool)",
       "dq": false,
       "kind": "attest",
-      "added": "2026-10-19T13:34:48Z"
+      "added": "2026-10-19T13:34:48Z",
+      "confirmed": {
+        "evidence": "builder confirmed on 2026-10-19 after reading the Devpost page (above legal age of majority in country of residence; not in an excluded territory)",
+        "at": "2026-10-19T18:16:58Z"
+      }
     }
   ]
 }
