@@ -27,7 +27,8 @@ export async function POST(request: Request) {
     seeds.push({ name, kind: (KINDS.has(kindRaw) ? kindRaw : "other") as Seed["kind"] });
   }
   const excludeIsbns = Array.isArray(body.excludeIsbns) ? body.excludeIsbns.filter((x) => typeof x === "string").slice(0, 20) : [];
-  const result = await recover({ runId, seeds, excludeIsbns }, makeQlooClient());
+  const entityMap = await getRepo().entityMap(); // built by scripts/build-map.ts once the key is active; empty until then
+  const result = await recover({ runId, seeds, excludeIsbns }, makeQlooClient(), entityMap.size ? { entityMap } : {});
   await getRepo().upsertRun({ id: runId, seeds: result.seeds, mode: result.mode, request: result.request ?? null, books: result.books.map((b) => ({ isbn13: b.isbn13, title: b.title })) });
   return Response.json(result);
 }

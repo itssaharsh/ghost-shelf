@@ -31,6 +31,12 @@ export async function POST(request: Request) {
     const t = String((r as { title?: unknown }).title ?? "").slice(0, 200);
     if (isbn13 && t) recovered.push({ isbn13, title: t });
   }
-  const { row, created, total } = await getRepo().logInvented({ runId, title, author, seeds, recovered });
-  return Response.json({ count: total, timesLogged: row.count, created, id: row.id, storage: getRepo().mode });
+  const repo = getRepo();
+  if (runId) {
+    // only a title no source had a record for belongs in the registry; an unknown run (another instance in memory mode) is accepted
+    const run = await repo.getRun(runId);
+    if (run?.verdictKind && run.verdictKind !== "no_record") return Response.json({ error: "Only a title with no record in any source can be logged" }, { status: 409 });
+  }
+  const { row, created, total } = await repo.logInvented({ runId, title, author, seeds, recovered });
+  return Response.json({ count: total, timesLogged: row.count, created, id: row.id, storage: repo.mode });
 }

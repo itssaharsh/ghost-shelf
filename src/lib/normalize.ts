@@ -61,6 +61,6 @@ export function isbn10to13(isbn10: string): string {
 export function toIsbn13(raw: string): string | null {
   const p = String(raw || "").replace(/[^0-9Xx]/g, "");
   if (/^97[89]\d{10}$/.test(p)) return p;
-  if (/^\d{10}$/.test(p)) return isbn10to13(p);
+  if (/^\d{9}[\dXx]$/.test(p)) return isbn10to13(p);
   return null;
 }

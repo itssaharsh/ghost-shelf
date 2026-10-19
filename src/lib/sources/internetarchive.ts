@@ -39,8 +39,10 @@ export function matchInternetArchive(docs: ArchiveDoc[], q: CheckQuery): FoundRe
     const titleOk = normalizeTitle(title) === qt || (mainTitle(title) === qm && qm.length > 3);
     if (!titleOk) continue;
     const creators = list(d.creator);
-    // Without an author we still insist on a named creator: the archive holds essays and notes titled after famous books.
-    if (q.author ? !creators.some((c) => sameAuthor(c, q.author!)) : creators.length === 0) continue;
+    // Without an author, a named creator is not enough (the archive holds essays, notes and uploads titled after famous books):
+    // the record must look like a published book, with an ISBN or a publisher.
+    const published = list(d.isbn).length > 0 || Boolean(first(d.publisher));
+    if (q.author ? !creators.some((c) => sameAuthor(c, q.author!)) : !(creators.length > 0 && published)) continue;
     const y = Number(first(d.date)?.slice(0, 4));
     const isbn13 = list(d.isbn).map((i) => toIsbn13(i)).find((i): i is string => Boolean(i)) ?? null;
     const author = creators.find((c) => (q.author ? sameAuthor(c, q.author) : true)) ?? "";

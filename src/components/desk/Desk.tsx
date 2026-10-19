@@ -58,6 +58,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
   const timerRef = useRef<number | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const checkedRun = useRef<{ title: string; author: string } | null>(null);
+  const runSeq = useRef(0); // a late /api/recover answer from an earlier run must not land on the current shelf
 
   // Every announcement is also a line in the run log (the agent's steps, timed from the first).
   const announce = useCallback((s: string) => {
@@ -81,11 +82,12 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
     setEmptyTitle(s.emptyTitle);
     setCheckError(s.checkError);
     checkedRun.current = s.title ? { title: s.title, author: s.author } : null;
+    runSeq.current += 1;
     setRunKey((k) => k + 1);
   }, []);
 
   const recover = useCallback(
-    async (id: string, seedList: Seed[], excludeIsbns: string[] = []) => {
+    async (id: string, seedList: Seed[], excludeIsbns: string[] = [], seq: number = runSeq.current) => {
       if (seedList.length === 0) {
         setShelf({ status: "ready", result: { runId: id, mode: qlooConfigured ? "qloo" : "sample", modeNote: "", seeds: [], unresolved: [], books: [] } });
         return;
@@ -95,9 +97,11 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
         const res = await fetch("/api/recover", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ runId: id, seeds: seedList, excludeIsbns }) });
         if (!res.ok) throw new Error("Couldn't reach the taste graph.");
         const json = (await res.json()) as RecoverResult;
+        if (seq !== runSeq.current) return; // a newer run owns the shelf now
         setShelf({ status: "ready", result: json });
         announce(json.mode === "qloo" ? `Qloo: ${json.seeds.length} seed${json.seeds.length === 1 ? "" : "s"} resolved, ${json.books.length} held books on the shelf` : `Sample mode: ${json.books.length} held books on the shelf (not ranked by taste)`);
       } catch (err) {
+        if (seq !== runSeq.current) return;
         setShelf({ status: "error", error: err instanceof Error ? err.message : "Couldn't reach the taste graph." });
       }
     },
@@ -128,6 +132,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
       setPanelOpen(false);
       setRunKey((k) => k + 1);
       setRunLog([]);
+      const seq = ++runSeq.current;
       checkedRun.current = { title: tt, author: a.trim() };
       announce(`Checking ${sources.map(label).join(", ")} for "${tt}"${a.trim() ? ` by ${a.trim()}` : ""}`);
       const go = () => {
@@ -164,7 +169,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
                 return next;
               });
               announce(headlineFor(e.verdict));
-              if (e.verdict.kind === "no_record" || e.verdict.kind === "unchecked") void recover(e.runId, seedList);
+              if (e.verdict.kind === "no_record" || e.verdict.kind === "unchecked") void recover(e.runId, seedList, [], seq);
             }
           },
           fail,
@@ -278,7 +283,8 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
       return;
     }
     try {
-      const res = await fetch("/api/holds", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ runId, isbns: reservable, title, author }) });
+      const checked = checkedRun.current ?? { title, author }; // the run that was checked, not whatever is in the fields now
+      const res = await fetch("/api/holds", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ runId, isbns: reservable, title: checked.title, author: checked.author }) });
       if (!res.ok) throw new Error("hold failed");
       const j = (await res.json()) as { written: number };
       done(j.written);
@@ -307,7 +313,8 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
       return;
     }
     try {
-      const res = await fetch("/api/log", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ runId, title, author, seeds, recovered: books.map((b) => ({ isbn13: b.isbn13, title: b.title })) }) });
+      const checked = checkedRun.current ?? { title, author };
+      const res = await fetch("/api/log", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ runId, title: checked.title, author: checked.author, seeds, recovered: books.map((b) => ({ isbn13: b.isbn13, title: b.title })) }) });
       if (!res.ok) throw new Error("log failed");
       const j = (await res.json()) as { count: number; timesLogged: number };
       done(j.count, j.timesLogged);
@@ -355,7 +362,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
                 type="button"
                 onClick={() => pickPreset(p)}
                 aria-pressed={active}
-                className={`shrink-0 h-8 px-3 rounded-md border text-[14px] inline-flex items-center gap-2 transition-colors duration-150 ${active ? "bg-ink text-canvas border-ink" : "bg-canvas text-ink border-line hover:bg-surface-2"}`}
+                className={`relative shrink-0 h-8 px-3 rounded-md border text-[14px] inline-flex items-center gap-2 transition-colors duration-150 ${active ? "bg-ink text-canvas border-ink" : "bg-canvas text-ink border-line hover:bg-surface-2"}`}
               >
                 <span aria-hidden="true" className={`inline-block size-2 rounded-full ${invented ? "bg-danger" : "border-[1.5px] border-current"}`} />
                 <span className="sr-only">{invented ? "Invented title: " : "Real title: "}</span>

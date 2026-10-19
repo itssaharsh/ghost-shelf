@@ -52,6 +52,15 @@ export function gateToHoldings(books: QlooBook[], items: CollectionItem[], map?:
   return out;
 }
 
+/** True when any avoid word appears as a whole word in the title or a subject ("us" does not hit "The husbands"). */
+export function avoided(item: Pick<CollectionItem, "title" | "subjects">, words: string[]): boolean {
+  const res = words
+    .map((w) => w.trim())
+    .filter((w) => w.length > 1)
+    .map((w) => new RegExp(`(^|[^\\p{L}\\p{N}])${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?=$|[^\\p{L}\\p{N}])`, "iu"));
+  return res.some((r) => r.test(item.title) || item.subjects.some((s) => r.test(s)));
+}
+
 export type RecoverInput = {
   runId: string;
   seeds: Seed[];
@@ -116,10 +125,8 @@ export async function recover(input: RecoverInput, client: QlooClient, deps: { i
   }
 
   const exclude = new Set(input.excludeIsbns ?? []);
-  const avoid = (input.avoid ?? []).map((w) => w.trim().toLowerCase()).filter((w) => w.length > 1);
-  const avoided = (item: CollectionItem) => avoid.some((w) => item.title.toLowerCase().includes(w) || item.subjects.some((s) => s.toLowerCase().includes(w)));
   const count = Math.max(1, Math.min(10, input.count ?? RECOVER_COUNT));
-  const gated = gateToHoldings(books, items, deps.entityMap).filter((g) => !exclude.has(g.item.isbn13) && !avoided(g.item)).slice(0, count);
+  const gated = gateToHoldings(books, items, deps.entityMap).filter((g) => !exclude.has(g.item.isbn13) && !avoided(g.item, input.avoid ?? [])).slice(0, count);
   const out: RecoveredBook[] = gated.map(({ book, item }) => {
     const r = reasonLine(resolved, book, explainAvailable);
     return {

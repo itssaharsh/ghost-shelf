@@ -67,7 +67,7 @@ export function PatronCard({ phase, verdict, error, title, author, sources }: { 
     return (
       <article className={base} aria-live="polite">
         <h2 className="m-0 font-display font-bold text-[24px] tracking-[-0.01em]">Couldn&rsquo;t check any source.</h2>
-        <p className="m-0 text-[20px] leading-[1.45]">Our catalog, Open Library and Google Books did not answer. Try again in a moment.</p>
+        <p className="m-0 text-[20px] leading-[1.45]">{sources.map((s) => (s === "catalog" ? "Our catalog" : SOURCE_LABEL[s])).join(", ").replace(/, ([^,]*)$/, " and $1")} did not answer. Try again in a moment.</p>
       </article>
     );
   }

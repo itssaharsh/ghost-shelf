@@ -31,6 +31,21 @@ export function insightsUrl(base: string, seedIds: string[], chunk: string[] | u
   return `${base}/v2/insights?${p}`;
 }
 
+/** Runs fn over items with at most `limit` in flight; results keep the items' order. */
+async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, async () => {
+      while (next < items.length) {
+        const i = next++;
+        out[i] = await fn(items[i]);
+      }
+    }),
+  );
+  return out;
+}
+
 export function chunkIds(ids: string[], size = HOLDINGS_CHUNK): string[][] {
   const out: string[][] = [];
   for (let i = 0; i < ids.length; i += size) out.push(ids.slice(i, i + size));
@@ -101,13 +116,13 @@ export class LiveQloo implements QlooClient {
     const calls: RedactedRequest["calls"] = [];
     const resolved: Seed[] = [];
     const unresolved: string[] = [];
-    for (const s of seeds) {
-      const json = await this.get<SearchResponse>(searchUrl(this.base, s), calls, "search");
-      const hit = (json.results ?? []).find((r) => r.entity_id || r.id);
+    const answers = await mapLimit(seeds, 3, (s) => this.get<SearchResponse>(searchUrl(this.base, s), calls, "search"));
+    seeds.forEach((s, i) => {
+      const hit = (answers[i].results ?? []).find((r) => r.entity_id || r.id);
       const id = hit?.entity_id ?? hit?.id;
       if (id) resolved.push({ ...s, entityId: id, canonical: hit?.name && hit.name !== s.name ? hit.name : undefined });
       else unresolved.push(s.name);
-    }
+    });
     return { resolved, unresolved, calls };
   }
 
@@ -116,8 +131,9 @@ export class LiveQloo implements QlooClient {
     const chunks = opts.heldEntityIds?.length ? chunkIds(opts.heldEntityIds) : [undefined];
     const seen = new Map<string, QlooBook>();
     let excerpt: unknown;
-    for (const chunk of chunks) {
-      const json = await this.get<InsightsResponse>(insightsUrl(this.base, seedEntityIds, chunk, opts.excludeEntityIds, 50), calls, "insights");
+    // the holdings gate is ~20 chunks of 150 ids; four in flight keeps a 3,000-title collection under the 3 s target
+    const answers = await mapLimit(chunks, 4, (chunk) => this.get<InsightsResponse>(insightsUrl(this.base, seedEntityIds, chunk, opts.excludeEntityIds, 50), calls, "insights"));
+    for (const json of answers) {
       const entities = json.results?.entities ?? [];
       if (!excerpt) excerpt = entities.slice(0, 3);
       for (const e of entities) {

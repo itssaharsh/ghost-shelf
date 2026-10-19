@@ -23,7 +23,8 @@ export async function GET(request: Request) {
         const verdict = await runCheck({ title, author }, send, undefined, runId);
         await getRepo().upsertRun({ id: runId, title, author, verdictKind: verdict.kind, checked: verdict.checked, failed: verdict.failed });
       } catch (err) {
-        controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({ message: err instanceof Error ? err.message : "check failed" })}\n\n`));
+        console.error("check failed", { title, error: err instanceof Error ? err.message : String(err) }); // server side only; the browser gets a fixed line
+        controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({ message: "The checks could not run. Try again in a moment." })}\n\n`));
       } finally {
         controller.close();
       }

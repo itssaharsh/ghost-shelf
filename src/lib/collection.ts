@@ -1,7 +1,7 @@
 // The demo collection: a public-domain slice of Seattle Public Library's 2025 checkouts (data/collection.json).
 // It stands in for a library catalog: the catalog check and the holdings gate run against it.
 import raw from "../../data/collection.json";
-import { mainTitle, normalizeTitle, sameAuthor, toIsbn13 } from "./normalize";
+import { authorKey, mainTitle, normalizeTitle, sameAuthor, toIsbn13 } from "./normalize";
 
 export type CollectionItem = {
   isbn13: string;
@@ -60,7 +60,14 @@ export function findHeld(q: { title?: string; author?: string; isbn?: string }):
     const hit = unique.find((c) => sameAuthor(c.author, q.author!) || sameAuthor(c.authorRaw, q.author!));
     return hit ? { item: hit, match: "title+author" } : null;
   }
-  return unique.length === 1 ? { item: unique[0], match: "title" } : null;
+  if (unique.length === 1) return { item: unique[0], match: "title" };
+  // two editions of the same book (same author) are one title: answer with the most-borrowed edition
+  const authors = new Set(unique.map((c) => authorKey(c.author)));
+  if (unique.length > 1 && authors.size === 1) {
+    const best = [...unique].sort((a, b) => b.checkouts2025 - a.checkouts2025)[0];
+    return { item: best, match: "title" };
+  }
+  return null;
 }
 
 /** Held titles that share a title with the query but not the author (for the "exists by someone else" note). */

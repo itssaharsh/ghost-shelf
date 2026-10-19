@@ -17,7 +17,13 @@ export class PostgresRepo implements Repo {
 
   /** The documented examples go in once, on the first registry read or write of a fresh database. */
   private ensureSeeded(): Promise<void> {
-    if (!this.seeded) this.seeded = this.seedExamples(this.examples).then(() => undefined);
+    if (!this.seeded)
+      this.seeded = this.seedExamples(this.examples)
+        .then(() => undefined)
+        .catch((e) => {
+          this.seeded = null; // try again on the next call instead of caching the failure
+          throw e;
+        });
     return this.seeded;
   }
 

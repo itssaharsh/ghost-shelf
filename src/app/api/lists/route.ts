@@ -19,6 +19,6 @@ export async function POST(request: Request) {
   const avoid = parseList(String(body.avoid ?? "").slice(0, 300));
   const count = Math.max(5, Math.min(10, Number(body.count) || 8));
   const runId = `list-${crypto.randomUUID()}`;
-  const result = await recover({ runId, seeds, excludeIsbns: dislikedToExcludes(disliked), avoid: [...avoid, ...disliked], count }, makeQlooClient());
+  const result = await recover({ runId, seeds, excludeIsbns: dislikedToExcludes(disliked), avoid, count }, makeQlooClient());
   return Response.json({ ...result, requested: { liked, disliked, avoid, format: String(body.format ?? "print").slice(0, 40), count } });
 }

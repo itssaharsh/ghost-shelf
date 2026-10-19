@@ -10,7 +10,7 @@ A patron asks for a book a chatbot recommended. Ghost Shelf checks the title aga
 
 ## What it does
 
-- **Three checks with receipts.** The demo collection (a real table), Open Library and the Internet Archive (Google Books when a key is set) answer in sequence, each with its result, its elapsed time and a link to repeat the search.
+- **Three checks with receipts.** The demo collection (a real table), Open Library and the Internet Archive (Google Books when a key is set) are queried together and each drawer opens as its answer lands, with the result, the elapsed time and a link to repeat the search.
 - **The patron card.** "No record in 3 sources", "Exists, and we hold it", "Exists; we don't hold it", or "No record in 2 sources" when a source did not answer. It never says a book does not exist, and it keeps the caveat that recent and small-press titles may be missing. It prints as a slip.
 - **Recovery through Qloo.** What the patron liked (a film, a band, an author, a book, a show) becomes three books the library holds, each with the reason it was chosen and, when Qloo returns it, the share each seed contributed.
 - **Reserve and log.** Holds go to a demo holds list (idempotent per run); the invented title joins a registry that ships with the ten titles printed in a newspaper insert in May 2025. The top-bar count ticks.
@@ -32,7 +32,7 @@ Recovery is the step only Qloo can do here, and it runs on the server (`src/lib/
 
 1. **Search** resolves each thing the patron named to a Qloo entity: `GET /search` with `query` and `types` chosen from the seed's kind (`urn:entity:movie`, `urn:entity:artist`, `urn:entity:person`, `urn:entity:book`, `urn:entity:tv_show`). The patron's own words stay on screen; Qloo's canonical name is kept beside them.
 2. **Insights** asks for books that fit all of them at once: `GET /v2/insights` with `filter.type=urn:entity:book`, `signal.interests.entities` = the resolved seeds, `filter.results.entities` = the Qloo entity ids of the demo collection (sent in chunks of 150, so the answer can only contain books the library holds), `filter.exclude.entities` for what the patron already has or rejected, `feature.explainability=true` and `take=50`.
-3. **The holdings map** (ISBN to Qloo entity id for the collection) is built once with the key by `scripts/build-map.ts` and kept in the database. It is never committed: the repository holds no Qloo response data.
+3. **The holdings map** (ISBN to Qloo entity id for the collection) is built once the key is active, by `scripts/build-map.ts` (`npm run map:build`), and kept in the database; until it exists the gate matches Qloo's books to the collection by title and author. The map is never committed: the repository holds no Qloo response data.
 4. **Reasons.** When explainability comes back, each book's reason line names the seeds with their share ("because you named The Martian 61%, Radiohead 39%"); otherwise it names the seeds without shares. The affinity is shown as "match 0.74, from Qloo".
 5. **Sample mode.** When `QLOO_API_KEY` is absent, or a Qloo call fails (401, timeout), the checks and the card still run live and the shelf shows three held books picked by a deterministic non-taste rule, labelled "Sample mode" on screen and in the request panel. The hackathon key is issued by hand, so the product stays complete while it is pending.
 
@@ -54,8 +54,9 @@ The desk is a small agent with the librarian in the loop: it checks three source
 | Variable | Purpose |
 |---|---|
 | `QLOO_API_KEY` | The Qloo hackathon key. The client only ever calls `https://hackathon.api.qloo.com`, sends the key in the `X-Api-Key` header, never in a URL, a log, a response or the client bundle. Absent: sample mode, labelled. |
-| `DATABASE_URL` | Neon Postgres for runs, holds, the registry, the holdings map and a small cache. Absent: an in-memory store, labelled on the desk and the registry page; it resets on deploy. |
+| `DATABASE_URL` | Neon Postgres for runs, holds, the registry, the holdings map and a small cache. Absent: an in-memory store per server instance, labelled on the desk and the registry page; it resets on deploy and does not share state between instances. The live demo runs this way until the database is connected. |
 | `GOOGLE_BOOKS_API_KEY` | Optional. With it, Google Books is the third check; without it, the Internet Archive (keyless) takes the third drawer, because Google Books rate-limits keyless hosts. |
+| Rate limits | 20 a minute per IP on the write routes, 30 on checks, 120 on reads, 240 on covers; counted per server instance. |
 | `NEXT_PUBLIC_DEMO` | `1` shows the judge card by default on the demo deployment (`?judge=0` hides it, `?judge=1` shows it anywhere). |
 
 Run it:

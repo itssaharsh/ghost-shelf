@@ -2,13 +2,13 @@
 Mode: hackathon. Last structural change: 2026-10-19 (ADR-0001 to ADR-0005).
 
 ## Overview
-A reference-desk tool. A librarian types the title a patron asked for; the server checks three sources in sequence (the demo collection, Open Library, and Google Books when a key is set, else the Internet Archive) and streams each result; the UI shows a plain card for the patron; if nothing was found and the patron named something they like (a film, a band, an author), the server asks Qloo for books the library holds that fit, with per-seed reasons; the librarian reserves them and logs the invented title. One Next.js app on Vercel, one Postgres (Neon), three public APIs, Qloo's hackathon API behind a server-side client with a labelled sample mode.
+A reference-desk tool. A librarian types the title a patron asked for; the server checks three sources concurrently and streams each answer as it lands (the demo collection, Open Library, and Google Books when a key is set, else the Internet Archive) and streams each result; the UI shows a plain card for the patron; if nothing was found and the patron named something they like (a film, a band, an author), the server asks Qloo for books the library holds that fit, with per-seed reasons; the librarian reserves them and logs the invented title. One Next.js app on Vercel, one Postgres (Neon), three public APIs, Qloo's hackathon API behind a server-side client with a labelled sample mode.
 
 ## Components
 | Component | Responsibility | Tech | Why it exists (requirement) | When it fails |
 |---|---|---|---|---|
 | Web app (`src/app`) | the desk, the registry, reading lists, about | Next.js 16 App Router, React 19, Tailwind 4, motion | M1–M10, UI-SPEC | the browser shows the error state per region; the desk never blanks |
-| Check route (`/api/check`, SSE) | runs the three sources in sequence, streams one event each, computes the verdict | route handler, `ReadableStream` | M1, M2, AC-2 to AC-4 | a source times out at 6 s → "did not answer"; the run continues |
+| Check route (`/api/check`, SSE) | runs the three sources as each answers, streams one event each, computes the verdict | route handler, `ReadableStream` | M1, M2, AC-2 to AC-4 | a source times out at 6 s → "did not answer"; the run continues |
 | Demo collection (`data/collection.json` + table `collection_items`) | the catalog check and the holdings gate | a public-domain slice of Seattle Public Library's 2025 checkouts, loaded in memory on the server; the ISBN→Qloo entity map in Postgres | M1, M3, A-4 | JSON always loads; the map missing → recovery runs ungated and says so |
 | Qloo client (`src/lib/qloo`) | resolve seeds (`/search`), recover books (`/v2/insights`) with the holdings gate in chunks, parse explainability, redact the request for the panel | `fetch` to `https://hackathon.api.qloo.com`, server only | M3, M7, M8, the sponsor rules | 401/429/5xx/empty → `SampleQloo` (deterministic subject overlap, labelled "sample mode") |
 | Recover route (`/api/recover`) | seeds → three held books with reasons; rate-limited | route handler | M3, AC-5, AC-6, AC-10, AC-13 | returns the sample-mode result with its label, or 429 |
@@ -52,13 +52,13 @@ flowchart LR
 - ADR-0005 Neon via the Vercel Marketplace with Drizzle, lazy init, in-memory adapter for tests — one managed datastore, no build-time connection.
 
 ## Failure boundaries
-Every external call has a 6 s timeout (covers: the browser's). A failed source degrades its drawer and the card's count; a failed Qloo call degrades to sample mode with a label; a failed DB degrades reserve and log only. Holds are idempotent per (run id, isbn). The rate limit (20/min/IP) is per server instance (Fluid Compute reuses instances; acceptable for a demo and stated in the README). No retries inside a request except one retry on a Qloo 5xx.
+Every external call has a 6 s timeout (covers: the browser's). A failed source degrades its drawer and the card's count; a failed Qloo call degrades to sample mode with a label; a failed DB degrades reserve and log only. Holds are idempotent per (run id, isbn). Rate limits (20/min/IP on writes, 30 on checks, 120 on reads, 240 on covers) are per server instance (Fluid Compute reuses instances; acceptable for a demo, stated in src/lib/ratelimit.ts and the README). No retries inside a request: a failed Qloo call falls back to sample mode, a failed source is reported and the run continues.
 
 ## Deployment
 Vercel project `ghost-shelf` (team lack-toes); production on the default `.vercel.app` URL. Env: `QLOO_API_KEY` (server), `DATABASE_URL` (Neon, from the Marketplace), `GOOGLE_BOOKS_API_KEY` (optional), `NEXT_PUBLIC_DEMO=1` on the demo deployment (judge card on by default). Deploy with `vercel deploy --prod` after `pb.py verify`; roll back with `vercel rollback`. Migrations: `drizzle-kit push` from a local shell with `.env.local` sourced; the seed script loads the collection and the ten example registry rows.
 
 ## Observability
-Structured console logs with a run id on every route; Vercel runtime logs; the run row stores timings per source and the Qloo latency; an error boundary per page region.
+The check route logs a failure server-side with the title; Vercel runtime logs; the run row stores the verdict, the seeds, the mode, the redacted Qloo calls with their latency and a three-entity response excerpt; a root error boundary (src/app/error.tsx) keeps a thrown render from blanking the desk.
 
 ## Known tradeoffs
 In-memory rate limiting; a 3,000-title demo collection instead of a live catalog; sample mode is a deterministic rule, not Qloo, and says so; covers depend on Open Library's IP limit.

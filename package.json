@@ -11,7 +11,8 @@
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",
     "fetch:collection": "node scripts/fetch-collection.mjs",
     "db:push": "dotenv -e .env.local -- drizzle-kit push",
-    "db:seed": "dotenv -e .env.local -- tsx scripts/seed.ts"
+    "db:seed": "dotenv -e .env.local -- tsx scripts/seed.ts",
+    "map:build": "dotenv -e .env.local -- tsx scripts/build-map.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

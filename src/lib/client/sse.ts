@@ -26,8 +26,8 @@ export function openCheckStream(q: { title: string; author: string }, onEvent: (
       } catch {
         onError("check failed");
       }
-    } else if (es.readyState === EventSource.CLOSED) {
-      onError("The check stream closed early");
+    } else {
+      onError("The check stream dropped. Check the connection and try again."); // a reconnect would re-run every source; the desk offers Retry instead
     }
     es.close();
   });
