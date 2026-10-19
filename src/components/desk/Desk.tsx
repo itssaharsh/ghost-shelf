@@ -495,8 +495,8 @@ function DrawerView({ drawer, collectionSize, onRetry }: { drawer: Drawer; colle
             </button>
           )}
           {r?.link && (
-            <a href={r.link} target="_blank" rel="noreferrer" className="text-[13px] text-ink-muted underline underline-offset-2 mt-1 inline-block whitespace-nowrap">
-              search {SOURCE_LABEL[drawer.source]} ↗
+            <a href={r.link} target="_blank" rel="noreferrer" className="text-[13px] text-ink-muted underline underline-offset-2 mt-1 inline-block">
+              search {SOURCE_LABEL[drawer.source]}&nbsp;↗
             </a>
           )}
         </div>
