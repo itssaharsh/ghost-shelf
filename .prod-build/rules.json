@@ -1,0 +1,80 @@
+{
+  "rules": [
+    {
+      "id": "live-demo",
+      "quote": "a live, working demo that judges can try end to end; local-only or private-access demos do not qualify",
+      "source": "https://ainave.com/events/hackathons/qloo-agentic-hackathon (relayed listing text; qloo.devpost.com/rules refused the fetch tool)",
+      "dq": true,
+      "kind": "attest",
+      "added": "2026-10-19T13:34:46Z"
+    },
+    {
+      "id": "public-repo",
+      "quote": "a public code repository on GitHub, GitLab, or Bitbucket with source, assets and run instructions",
+      "source": "https://ainave.com/events/hackathons/qloo-agentic-hackathon (relayed listing text; qloo.devpost.com/rules refused the fetch tool)",
+      "dq": true,
+      "kind": "attest",
+      "added": "2026-10-19T13:34:46Z"
+    },
+    {
+      "id": "oss-license",
+      "quote": "The repository must also display an open-source license.",
+      "source": "https://ainave.com/events/hackathons/qloo-agentic-hackathon (relayed listing text; qloo.devpost.com/rules refused the fetch tool)",
+      "dq": true,
+      "kind": "file",
+      "added": "2026-10-19T13:34:46Z",
+      "paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "id": "qloo-integration",
+      "quote": "integrate the Qloo API and function as an agentic tool, be built with an agent framework, or connect Qloo to an existing agent",
+      "source": "https://ainave.com/events/hackathons/qloo-agentic-hackathon (relayed listing text; qloo.devpost.com/rules refused the fetch tool)",
+      "dq": true,
+      "kind": "section",
+      "added": "2026-10-19T13:34:47Z",
+      "file": "README.md",
+      "heading": "How Qloo is used",
+      "number": false
+    },
+    {
+      "id": "written-explanation",
+      "quote": "a written explanation of the project's features and what makes it Qloo-powered",
+      "source": "https://ainave.com/events/hackathons/qloo-agentic-hackathon (relayed listing text; qloo.devpost.com/rules refused the fetch tool)",
+      "dq": false,
+      "kind": "section",
+      "added": "2026-10-19T13:34:47Z",
+      "file": "README.md",
+      "heading": "What makes it Qloo-powered",
+      "number": false
+    },
+    {
+      "id": "no-qloo-data-in-repo",
+      "quote": "Do not store Qloo response data in a public repository.",
+      "source": "https://docs.qloo.com/reference/qloo-llm-hackathon-developer-guide",
+      "dq": false,
+      "kind": "attest",
+      "added": "2026-10-19T13:34:47Z"
+    },
+    {
+      "id": "hackathon-host-only",
+      "quote": "Your key is valid only against the hackathon base URL: https://hackathon.api.qloo.com",
+      "source": "https://docs.qloo.com/reference/qloo-llm-hackathon-developer-guide",
+      "dq": false,
+      "kind": "section",
+      "added": "2026-10-19T13:34:48Z",
+      "file": "README.md",
+      "heading": "Configuration",
+      "number": false
+    },
+    {
+      "id": "eligibility",
+      "quote": "legal age in country of residence; not open to residents of Brazil, Crimea, Cuba, Iran, North Korea, Quebec or Russia",
+      "source": "https://ainave.com/events/hackathons/qloo-agentic-hackathon (relayed listing text; qloo.devpost.com/rules refused the fetch tool)",
+      "dq": false,
+      "kind": "attest",
+      "added": "2026-10-19T13:34:48Z"
+    }
+  ]
+}
