@@ -9,7 +9,7 @@ Upstream read: hackathon-idea/qloo-agentic-hackathon/ideas.json (Ghost Shelf ent
 
 ## 2. Scope
 MUST (core product, main workflow, judged/required):
-- M1 Title check against three sources in sequence with per-source result and elapsed time: the demo collection (a real public-domain slice of Seattle Public Library's 2025 checkouts), Open Library search, Google Books (title and author query).
+- M1 Title check against three sources in sequence with per-source result and elapsed time: the demo collection (a real public-domain slice of Seattle Public Library's 2025 checkouts), Open Library search, and a third public source: Google Books (title and author query) when `GOOGLE_BOOKS_API_KEY` is set, else the Internet Archive (title query, author matched server-side). The drawer is labelled with whichever answered.
 - M2 The patron card with four states: no record in N sources (with the caveat "Recent and small-press titles may be missing"), exists and held, exists and not held, source failed (count drops, source named).
 - M3 Recovery: seeds (a film, a band, a TV show, an author, a book) resolved with Qloo Search, then Qloo Insights for books with signal.interests.entities = the seeds, filter.results.entities = the demo collection (chunked), filter.exclude.entities, feature.explainability; three held titles with per-seed reasons and covers.
 - M4 Reserve: writes three holds to the demo holds table; the button states the count and the outcome.
@@ -63,7 +63,8 @@ The collection map (isbn13 -> qloo_entity_id) is derived data from Qloo and live
 | Browser -> `/api/check` (SSE) | the three checks | src/lib/schemas.ts#CheckEvent | a source times out (6 s) or errors | that drawer reads "did not answer"; the card count drops; the run continues |
 | Server -> demo collection (Postgres) | catalog check and the holdings gate | src/db/schema.ts | DB unreachable | the catalog drawer fails and says so; recovery runs ungated and says "not checked against holdings" |
 | Server -> Open Library search.json | existence check | src/lib/sources/openlibrary.ts | 5xx, timeout, rate limit | drawer "did not answer" + retry |
-| Server -> Google Books volumes | existence check by title and author | src/lib/sources/googlebooks.ts | 429 without a key, timeout | drawer "did not answer" + retry; a key env var raises the quota |
+| Server -> Google Books volumes | existence check by title and author, only with `GOOGLE_BOOKS_API_KEY` | src/lib/sources/googlebooks.ts | 429 without a key, timeout | drawer "did not answer" + retry |
+| Server -> Internet Archive advancedsearch | third source without a Google Books key | src/lib/sources/internetarchive.ts | timeout, 5xx | drawer "did not answer" + retry |
 | Server -> Qloo `/search` and `/v2/insights` (hackathon host, X-Api-Key) | seed resolution and recovery | src/lib/qloo/client.ts (QlooClient interface; LiveQloo and SampleQloo) | 401 (no key), 429, 5xx, empty results, no explainability field | SampleQloo: deterministic pick from the demo collection by subject overlap, labelled "sample mode"; explainability absent: the reason reads "because you named X" without shares |
 | Browser -> Open Library covers | cover images | `<img src="https://covers.openlibrary.org/b/isbn/<isbn>-M.jpg?default=false">` | 404 or the 100-per-5-min IP limit | onerror -> spine block with the title |
 | Server -> Postgres (holds, registry, runs) | persistence | src/db/schema.ts | unreachable | the desk still checks and recovers; reserve and log show the failure |
@@ -100,7 +101,7 @@ A-1 [blocking, fenced]: the builder will receive a Qloo hackathon key before the
 A-2 [reversible]: Qloo returns feature.explainability for book results (the entity-type matrix does not list it for books). Validate on the first live call; the reason line degrades to "because you named X" without shares.
 A-3 [reversible]: Qloo's /search resolves the ten real authors and common films and bands used as seeds; validate on day one with the key.
 A-4 [safe]: a demo collection of about 3,000 most-borrowed 2025 BOOK titles from Seattle Public Library is enough for three held results per run; validate by the sample-mode and the first live run.
-A-5 [safe]: Open Library search and covers and Google Books keyless search answer from Vercel's region within 2 s; validate with the first deploy's smoke.
+A-5 [safe]: Open Library search and covers and the Internet Archive answer from Vercel's region within 2 s (Google Books keyless answered 429 from the build machine, 2026-10-19, so it is opt-in by key); validate with the first deploy's smoke.
 A-6 [reversible]: judges open the live app on a laptop; the phone layout is built and measured anyway.
 A-7 [safe]: no real patron data is ever entered; the product stores titles, seeds and holds only.
 

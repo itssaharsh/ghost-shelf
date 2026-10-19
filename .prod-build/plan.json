@@ -185,8 +185,10 @@
         "npm run build"
       ],
       "rollback": "git revert",
-      "status": "todo",
-      "notes": "UI-SPEC §5 S1 layout; styling comes in T06"
+      "status": "doing",
+      "notes": "UI-SPEC §5 S1 layout; styling comes in T06",
+      "base": "ea6d7ea",
+      "started_after": 13
     },
     {
       "id": "T05",

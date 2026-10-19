@@ -1,13 +1,16 @@
 // The three-source check: run every source with a timeout, emit each result as it arrives, then the verdict.
 import { collection, findHeld, sameTitleOtherAuthor } from "./collection";
 import { googleBooksLink, queryGoogleBooks } from "./sources/googlebooks";
+import { internetArchiveLink, queryInternetArchive } from "./sources/internetarchive";
 import { openLibraryLink, queryOpenLibrary } from "./sources/openlibrary";
 import type { CheckEvent, CheckQuery, FoundRecord, SourceName, SourceResult, Verdict } from "./schemas";
 
 export type SourceFn = (q: CheckQuery, signal: AbortSignal) => Promise<{ found: FoundRecord | null; detail: string; titleOnlyBy?: string }>;
 
 export type CheckDeps = {
-  sources: Record<SourceName, SourceFn>;
+  sources: Partial<Record<SourceName, SourceFn>>;
+  /** the three sources to run, in drawer order; defaults to activeSources() */
+  order?: SourceName[];
   timeoutMs?: number;
   now?: () => number;
 };
@@ -30,15 +33,19 @@ export const catalogSource: SourceFn = async (q) => {
 };
 
 export const defaultDeps: CheckDeps = {
-  sources: { catalog: catalogSource, openlibrary: queryOpenLibrary, googlebooks: queryGoogleBooks },
+  sources: { catalog: catalogSource, openlibrary: queryOpenLibrary, googlebooks: queryGoogleBooks, internetarchive: queryInternetArchive },
   timeoutMs: 6000,
 };
 
-const ORDER: SourceName[] = ["catalog", "openlibrary", "googlebooks"];
+/** The three sources in play. Google Books rate-limits keyless hosts, so without GOOGLE_BOOKS_API_KEY the Internet Archive takes the third drawer. */
+export function activeSources(env: NodeJS.ProcessEnv = process.env): SourceName[] {
+  return ["catalog", "openlibrary", env.GOOGLE_BOOKS_API_KEY ? "googlebooks" : "internetarchive"];
+}
 
 function linkFor(source: SourceName, q: CheckQuery): string | undefined {
   if (source === "openlibrary") return openLibraryLink(q);
   if (source === "googlebooks") return googleBooksLink(q);
+  if (source === "internetarchive") return internetArchiveLink(q);
   return undefined;
 }
 
@@ -49,7 +56,9 @@ async function runSource(source: SourceName, q: CheckQuery, deps: CheckDeps): Pr
   const timeoutMs = deps.timeoutMs ?? 6000;
   const timer = setTimeout(() => ctrl.abort(new Error("timeout")), timeoutMs);
   try {
-    const r = await deps.sources[source](q, ctrl.signal);
+    const fn = deps.sources[source];
+    if (!fn) throw new Error("not configured");
+    const r = await fn(q, ctrl.signal);
     const ms = Math.round(now() - t0);
     return r.found
       ? { source, result: "found", ms, detail: r.detail, link: linkFor(source, q), found: r.found }
@@ -83,8 +92,9 @@ export async function runCheck(q: CheckQuery, onEvent: (e: CheckEvent) => void, 
   const query: CheckQuery = { title: q.title.trim(), author: (q.author ?? "").trim() || undefined };
   onEvent({ type: "start", runId, title: query.title, author: query.author ?? "" });
   const results: SourceResult[] = [];
+  const order = deps.order ?? activeSources();
   await Promise.all(
-    ORDER.map(async (source) => {
+    order.map(async (source) => {
       const r = await runSource(source, query, deps);
       results.push(r);
       onEvent({ type: "source", ...r });

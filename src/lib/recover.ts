@@ -8,7 +8,7 @@ import type { RecoverResult, RecoveredBook, RedactedRequest, Seed } from "./sche
 export const RECOVER_COUNT = 3;
 
 export function coverUrl(isbn13: string): string {
-  return `https://covers.openlibrary.org/b/isbn/${isbn13}-M.jpg?default=false`;
+  return `https://covers.openlibrary.org/b/isbn/${isbn13}-M.jpg`; // a blank 1x1 comes back when there is no cover; the UI falls back on a tiny image
 }
 
 export function reasonLine(seeds: Seed[], book: QlooBook, explainAvailable: boolean): { reason: string; explain?: { seed: string; share: number }[] } {

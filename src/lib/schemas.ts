@@ -1,12 +1,13 @@
 // Shared types for the check, recovery, holds and registry boundaries. Plain types, no runtime dependency.
 import type { CollectionItem } from "./collection";
 
-export type SourceName = "catalog" | "openlibrary" | "googlebooks";
+export type SourceName = "catalog" | "openlibrary" | "googlebooks" | "internetarchive";
 
 export const SOURCE_LABEL: Record<SourceName, string> = {
   catalog: "Our catalog",
   openlibrary: "Open Library",
   googlebooks: "Google Books",
+  internetarchive: "Internet Archive",
 };
 
 export type FoundRecord = {

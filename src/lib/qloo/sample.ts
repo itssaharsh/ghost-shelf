@@ -24,7 +24,9 @@ export class SampleQloo implements QlooClient {
   }
 
   async recommendBooks(seedEntityIds: string[], opts: RecommendOptions): Promise<RecommendResult> {
-    const pool = this.items.filter((it) => it.subjects.some((s) => /fiction|novel|stories/i.test(s))).slice(0, 600);
+    const pool = this.items
+      .filter((it) => it.subjects.some((s) => /fiction|novel|stories/i.test(s)) && !it.subjects.some((s) => /juvenile|graphic novel|comic|children|picture book|young adult|manga/i.test(s)))
+      .slice(0, 600);
     const exclude = new Set(opts.excludeEntityIds ?? []);
     const base = hash(seedEntityIds.slice().sort().join("|"));
     const books: QlooBook[] = [];

@@ -2,7 +2,7 @@
 Mode: hackathon. Last structural change: 2026-10-19 (ADR-0001 to ADR-0005).
 
 ## Overview
-A reference-desk tool. A librarian types the title a patron asked for; the server checks three sources in sequence (the demo collection, Open Library, Google Books) and streams each result; the UI shows a plain card for the patron; if nothing was found and the patron named something they like (a film, a band, an author), the server asks Qloo for books the library holds that fit, with per-seed reasons; the librarian reserves them and logs the invented title. One Next.js app on Vercel, one Postgres (Neon), three public APIs, Qloo's hackathon API behind a server-side client with a labelled sample mode.
+A reference-desk tool. A librarian types the title a patron asked for; the server checks three sources in sequence (the demo collection, Open Library, and Google Books when a key is set, else the Internet Archive) and streams each result; the UI shows a plain card for the patron; if nothing was found and the patron named something they like (a film, a band, an author), the server asks Qloo for books the library holds that fit, with per-seed reasons; the librarian reserves them and logs the invented title. One Next.js app on Vercel, one Postgres (Neon), three public APIs, Qloo's hackathon API behind a server-side client with a labelled sample mode.
 
 ## Components
 | Component | Responsibility | Tech | Why it exists (requirement) | When it fails |
@@ -24,7 +24,8 @@ flowchart LR
   D -->|GET /api/check SSE| C[Check route]
   C --> K[(collection.json)]
   C --> OL[Open Library search]
-  C --> GB[Google Books volumes]
+  C --> GB[Google Books volumes, with GOOGLE_BOOKS_API_KEY]
+  C --> IA[Internet Archive advancedsearch, keyless default]
   D -->|POST /api/recover| R[Recover route]
   R --> Q[Qloo /search + /v2/insights]
   R --> P[(Neon Postgres: map, cache, runs)]
@@ -38,7 +39,8 @@ flowchart LR
 | Qloo hackathon API | seed resolution, book recovery, explainability | 401 (no key), 429, 5xx, no explainability | sample mode, labelled; reasons without shares | quotas "set high enough for typical hackathon projects"; private cache in Postgres; GET only; key never in the browser or the repo |
 | Open Library search.json | existence check | timeout, 5xx | drawer "did not answer" | be gentle; one call per check |
 | Open Library covers | cover images in the browser | 404 (none), 403 after 100 ISBN lookups per IP per 5 min | spine block with the title | 3 images per run from the judge's IP |
-| Google Books volumes | existence check by title and author | 429 keyless | drawer "did not answer"; optional `GOOGLE_BOOKS_API_KEY` | keyless quota is low; one call per check |
+| Google Books volumes | existence check by title and author, only when `GOOGLE_BOOKS_API_KEY` is set | 429 keyless | drawer "did not answer" | keyless quota is low from shared hosts; one call per check |
+| Internet Archive advancedsearch | third source when no Google Books key: title-only query, author matched server-side (creators come inverted, "Walter, Jess, 1965-") | timeout | drawer "did not answer" | holds essays and notes titled after famous books, so a match needs a named creator |
 | Seattle Public Library open data (SODA) | the demo collection, fetched once by a script | n/a at runtime | the committed JSON | public domain |
 | Neon Postgres | holds, registry, cache, map | unreachable; autosuspend after idle | errors named; warm-up ping on deploy | hobby tier |
 

@@ -11,7 +11,7 @@ const throwing: SourceFn = async () => { throw new Error("boom"); };
 const hanging: SourceFn = (_q, signal) => new Promise((_r, rej) => signal.addEventListener("abort", () => rej(signal.reason)));
 
 function deps(over: Partial<Record<"catalog" | "openlibrary" | "googlebooks", SourceFn>>, timeoutMs = 50): CheckDeps {
-  return { sources: { catalog: none, openlibrary: none, googlebooks: none, ...over }, timeoutMs };
+  return { sources: { catalog: none, openlibrary: none, googlebooks: none, ...over }, order: ["catalog", "openlibrary", "googlebooks"], timeoutMs };
 }
 
 async function collect(q: { title: string; author?: string }, d: CheckDeps) {
