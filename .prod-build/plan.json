@@ -275,11 +275,11 @@
    "verify": [
     "npm run typecheck",
     "npm run build",
-    "node scripts/verify-states.mjs http://localhost:47547 all --allow /lists,/about"
+    "node scripts/verify-states.mjs --serve all --allow /lists,/about"
    ],
    "rollback": "git revert",
    "status": "doing",
-   "notes": "verify-states starts the built app, screenshots every ?state= at 390 and 1440 into qa/, and fails on a horizontal scrollbar or a missing primary action",
+   "notes": "verify-states --serve starts the built app on a free port, screenshots every ?state= at 1440, 390 and 320 into qa/, and fails on a horizontal scrollbar, a missing primary action, a console error or an unexpected 4xx; --allow names routes owned by later tasks",
    "base": "e098948",
    "started_after": 31
   },

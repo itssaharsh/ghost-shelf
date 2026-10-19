@@ -2,11 +2,32 @@
 // Opens the desk (the live run at 1440x900 and 390x844; every ?state= at 1440, 390 and 320), screenshots into qa/, and fails on:
 // a horizontal scrollbar, a missing primary action, a JavaScript error, an unexpected 4xx, or the expected text not appearing.
 // Usage: node scripts/verify-states.mjs http://localhost:PORT [all|state,state,...] [--allow /path,/path]
+//        node scripts/verify-states.mjs --serve [all|...]   starts the built app itself on a free port (what the gate runs)
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
+import { spawn } from "node:child_process";
+import { createServer } from "node:net";
 
-const base = process.argv[2] ?? "http://localhost:3100";
-const stateArg = process.argv[3] ?? "";
+const argv = process.argv.slice(2);
+const serve = argv.includes("--serve");
+const positional = argv.filter((a, i) => !a.startsWith("--") && !(i > 0 && argv[i - 1] === "--allow"));
+let base = serve ? "" : (positional[0] ?? "http://localhost:3100");
+const stateArg = (serve ? positional[0] : positional[1]) ?? "";
+let child = null;
+if (serve) {
+  const port = await new Promise((res) => { const srv = createServer(); srv.listen(0, () => { const p = srv.address().port; srv.close(() => res(p)); }); });
+  base = `http://localhost:${port}`;
+  child = spawn("node", ["node_modules/next/dist/bin/next", "start", "-p", String(port)], { stdio: ["ignore", "pipe", "pipe"] });
+  let up = false;
+  for (let i = 0; i < 60 && !up; i++) {
+    await new Promise((r) => setTimeout(r, 500));
+    try { up = (await fetch(base + "/", { signal: AbortSignal.timeout(2000) })).ok; } catch {}
+  }
+  if (!up) { console.error("the built app did not start; run npm run build first"); child.kill(); process.exit(2); }
+  console.log(`serving the build at ${base}`);
+}
+const stop = () => { if (child) child.kill(); };
+process.on("exit", stop);
 // --allow /a,/b : paths whose 4xx is expected for now (routes owned by later tasks). The final gate runs without it.
 const allowArg = process.argv.indexOf("--allow");
 const ALLOW = allowArg > -1 ? (process.argv[allowArg + 1] ?? "").split(",").filter(Boolean) : [];
@@ -85,5 +106,6 @@ for (const [state, sizeName] of runs) {
   await ctx.close();
 }
 await browser.close();
+stop();
 console.log(failures ? `${failures} of ${runs.length} screens failed` : `all ${runs.length} screens pass`);
 process.exit(failures ? 1 : 0);
