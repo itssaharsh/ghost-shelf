@@ -1,0 +1,21 @@
+{
+  "note": "The ten invented titles are the ones printed, attributed to real authors, in the Chicago Sun-Times insert of 18 May 2025 (as reported by CBS News Chicago, 20 May 2025). The seeds are demo tastes a patron might name; they are not from any real person. The two real titles were chosen from the demo collection's own data: one held, one not held.",
+  "sources": {
+    "invented": "https://www.cbsnews.com/amp/chicago/news/summer-reading-ai-generated-titles-chicago-sun-times",
+    "collection": "https://data.seattle.gov/Community/Checkouts-by-Title/tmmm-ytt6"
+  },
+  "presets": [
+    { "id": "last-algorithm", "kind": "invented", "title": "The Last Algorithm", "author": "Andy Weir", "seeds": [{ "name": "The Martian", "kind": "film" }, { "name": "Radiohead", "kind": "band" }] },
+    { "id": "tidewater-dreams", "kind": "invented", "title": "Tidewater Dreams", "author": "Isabel Allende", "seeds": [{ "name": "Like Water for Chocolate", "kind": "film" }, { "name": "Buena Vista Social Club", "kind": "band" }] },
+    { "id": "nightshade-market", "kind": "invented", "title": "Nightshade Market", "author": "Min Jin Lee", "seeds": [] },
+    { "id": "rainmakers", "kind": "invented", "title": "The Rainmakers", "author": "Percival Everett", "seeds": [{ "name": "No Country for Old Men", "kind": "film" }, { "name": "Johnny Cash", "kind": "artist" }] },
+    { "id": "hurricane-season", "kind": "invented", "title": "Hurricane Season", "author": "Brit Bennett", "seeds": [{ "name": "Moonlight", "kind": "film" }, { "name": "Solange", "kind": "artist" }] },
+    { "id": "collectors-piece", "kind": "invented", "title": "The Collector's Piece", "author": "Taylor Jenkins Reid", "seeds": [{ "name": "Almost Famous", "kind": "film" }, { "name": "Fleetwood Mac", "kind": "band" }] },
+    { "id": "boiling-point", "kind": "invented", "title": "Boiling Point", "author": "Rebecca Makkai", "seeds": [{ "name": "The Bear", "kind": "tv" }, { "name": "Anthony Bourdain", "kind": "author" }] },
+    { "id": "longest-day", "kind": "invented", "title": "The Longest Day", "author": "Rumaan Alam", "seeds": [{ "name": "Leave the World Behind", "kind": "film" }, { "name": "The National", "kind": "band" }] },
+    { "id": "migrations", "kind": "invented", "title": "Migrations", "author": "Maggie O'Farrell", "seeds": [{ "name": "Hamnet", "kind": "book" }, { "name": "Portrait of a Lady on Fire", "kind": "film" }] },
+    { "id": "salt-and-honey", "kind": "invented", "title": "Salt and Honey", "author": "Delia Owens", "seeds": [{ "name": "Where the Crawdads Sing", "kind": "film" }, { "name": "Taylor Swift", "kind": "artist" }] },
+    { "id": "overstory", "kind": "real-held", "title": "The Overstory", "author": "Richard Powers", "seeds": [] },
+    { "id": "beautiful-ruins", "kind": "real-not-held", "title": "Beautiful Ruins", "author": "Jess Walter", "seeds": [] }
+  ]
+}

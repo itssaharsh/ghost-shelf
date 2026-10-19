@@ -26,3 +26,9 @@ source: unknown
 ## Consequences
 
 ## Revisit when
+
+Context: the drawers must answer one by one as each source replies, with its elapsed time.
+Decision: GET /api/check streams server-sent events (start, one per source, verdict); sources run concurrently with a 6 s timeout each.
+Alternatives rejected: one JSON response (no per-source timing on screen); websockets (more than needed).
+Consequences: the client reads an event stream; a failed source is an event, not an error.
+Revisit when: a source needs retries beyond one request.

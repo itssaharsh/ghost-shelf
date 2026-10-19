@@ -26,3 +26,9 @@ source: unknown
 ## Consequences
 
 ## Revisit when
+
+Context: Qloo hackathon keys are issued manually within a few business days; the product must be complete and honest before one arrives.
+Decision: a QlooClient interface with LiveQloo (search, insights, chunked holdings gate, explainability) and SampleQloo (a deterministic, labelled stand-in); recover() falls back to sample mode on 401/429/5xx and says so on screen.
+Alternatives rejected: blocking the build on the key; silently returning cached Qloo data (forbidden in a public repository).
+Consequences: every screen carries the mode; the first real call is a scheduled task (T11).
+Revisit when: the key is active and the entity map is built.

@@ -26,3 +26,9 @@ source: unknown
 ## Consequences
 
 ## Revisit when
+
+Context: a hackathon entry judged on a live URL with three routes and one UI.
+Decision: one Next.js 16 App Router app on Vercel serves the UI and the API routes.
+Alternatives rejected: a separate API service (two deploys, two sets of env, nothing gained); plain static HTML (no server to hold the Qloo key).
+Consequences: all Qloo calls are server-side; types are shared between routes and UI.
+Revisit when: a second client (a browser extension, an ILS plugin) needs the API without the UI.
