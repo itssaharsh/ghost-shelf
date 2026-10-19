@@ -17,7 +17,7 @@ test("sample mode returns three distinct held titles, labelled, with covers by I
   assert.equal(new Set(r.books.map((b) => b.isbn13)).size, 3);
   for (const b of r.books) {
     assert.ok(items.some((i) => i.isbn13 === b.isbn13), "every book is held");
-    assert.match(b.coverUrl, /covers\.openlibrary\.org\/b\/isbn\/97[89]\d{10}-M\.jpg/);
+    assert.ok(b.coverUrl === null || /^\/api\/cover\/\d+$/.test(b.coverUrl), "covers come by cover id through the proxy, or not at all");
     assert.match(b.reason, /sample mode/);
   }
   const again = await recover({ runId: "r2", seeds }, new SampleQloo(items));

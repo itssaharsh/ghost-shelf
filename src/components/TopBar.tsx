@@ -8,11 +8,11 @@ export function TopBar() {
       <div className="flex items-center gap-3 min-w-0">
         <Link href="/" className="flex items-center gap-3 no-underline text-ink whitespace-nowrap">
           <Mark size={28} />
-          <span className="font-display font-bold text-[20px] tracking-[-0.02em]">Ghost Shelf</span>
+          <span className="font-display font-bold text-[20px] tracking-[-0.02em] hidden min-[360px]:inline">Ghost Shelf</span>
         </Link>
         <span className="hidden md:inline text-[15px] text-ink-muted ml-2 whitespace-nowrap">For the reference desk</span>
       </div>
-      <nav className="flex items-center gap-4 sm:gap-7 text-[15px] whitespace-nowrap" aria-label="Pages">
+      <nav className="flex items-center gap-3 min-[400px]:gap-4 sm:gap-7 text-[15px] whitespace-nowrap" aria-label="Pages">
         <Link href="/invented" className="text-ink no-underline tnum">
           <span className="hidden sm:inline">Invented titles</span>
           <span className="sm:hidden">Invented</span> · <RegistryCount />

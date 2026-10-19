@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Courier_Prime, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
+import { Providers } from "@/components/Providers";
 import { TopBar } from "@/components/TopBar";
 
 const display = Courier_Prime({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-display", display: "swap" });
@@ -15,8 +16,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-canvas text-ink">
-        <TopBar />
-        {children}
+        <Providers>
+          <TopBar />
+          {children}
+        </Providers>
       </body>
     </html>
   );

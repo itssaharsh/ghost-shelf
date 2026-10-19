@@ -1,5 +1,6 @@
 // The three-source check: run every source with a timeout, emit each result as it arrives, then the verdict.
 import { collection, findHeld, sameTitleOtherAuthor } from "./collection";
+import { coverUrl } from "./covers";
 import { googleBooksLink, queryGoogleBooks } from "./sources/googlebooks";
 import { internetArchiveLink, queryInternetArchive } from "./sources/internetarchive";
 import { openLibraryLink, queryOpenLibrary } from "./sources/openlibrary";
@@ -78,7 +79,7 @@ export function computeVerdict(results: SourceResult[]): Verdict {
   const cat = results.find((r) => r.source === "catalog");
   if (cat?.result === "found" && cat.found?.isbn13) {
     const item = collection.byIsbn(cat.found.isbn13);
-    return { kind: "held", checked, failed, heldItem: item };
+    return { kind: "held", checked, failed, heldItem: item, heldCoverUrl: item ? coverUrl(item.isbn13) : null };
   }
   const elsewhere = results.find((r) => r.source !== "catalog" && r.result === "found");
   if (elsewhere?.found) return { kind: "not_held", checked, failed, foundElsewhere: { source: elsewhere.source, record: elsewhere.found } };

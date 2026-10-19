@@ -120,7 +120,7 @@ p {
   transition: transform var(--dur-drawer) var(--ease-out), opacity var(--dur-drawer) var(--ease-out);
 }
 .drawer-card[data-open="false"] {
-  transform: translateY(-16px);
+  transform: translateY(-24px);
   opacity: 0;
 }
 .drawer-card[data-open="true"] {
@@ -138,6 +138,98 @@ p {
   }
 }
 
+/* T-02: the patron card rises 8 px and fades in, 150 ms after the last drawer */
+.card-rise {
+  animation: card-rise 210ms var(--ease-enter) 150ms both;
+}
+@keyframes card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* T-07: fade through for the card and the shelf when a new run starts */
+.fade-through {
+  animation: fade-through 150ms var(--ease-out) both;
+}
+@keyframes fade-through {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+/* T-06: the request panel slides in from the right (a bottom sheet on phone) */
+.panel-enter {
+  animation: panel-up var(--dur-drawer) var(--ease-drawer) both;
+}
+@media (min-width: 1024px) {
+  .panel-enter {
+    animation-name: panel-in;
+  }
+}
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes panel-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* T-04: a hold tab slides up behind each cover */
+.hold-tab {
+  animation: tab-up 120ms var(--ease-out) both;
+}
+@keyframes tab-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.judge-card {
+  animation: fade-in 150ms var(--ease-out) both;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ?record=1: the recording view hides hints meant for a first visit */
+[data-record] .not-for-record {
+  display: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .drawer-card {
     transition: opacity var(--dur-drawer) var(--ease-out);
@@ -145,6 +237,12 @@ p {
   }
   .sk {
     animation: none;
+  }
+  .card-rise,
+  .fade-through,
+  .panel-enter,
+  .hold-tab {
+    animation-name: fade-in;
   }
 }
 

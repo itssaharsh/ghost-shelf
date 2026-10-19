@@ -1,4 +1,5 @@
 "use client";
+import NumberFlow from "@number-flow/react";
 import { useEffect, useState } from "react";
 
 const EVENT = "ghost-shelf:registry-count";
@@ -23,5 +24,6 @@ export function RegistryCount() {
       window.removeEventListener(EVENT, onCount);
     };
   }, []);
-  return <span className="tnum">{count ?? 10}</span>;
+  // T-05: the count ticks (300 ms); under reduced motion NumberFlow sets it directly.
+  return <NumberFlow value={count ?? 10} className="tnum" transformTiming={{ duration: 300, easing: "ease-out" }} spinTiming={{ duration: 300, easing: "ease-out" }} respectMotionPreference />;
 }

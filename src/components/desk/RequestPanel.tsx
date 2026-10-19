@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { RedactedRequest } from "@/lib/schemas";
 
-export function RequestPanel({ request, mode, onClose }: { request?: RedactedRequest; mode?: "qloo" | "sample"; onClose: () => void }) {
+export function RequestPanel({ request, mode, onClose, onCopied }: { request?: RedactedRequest; mode?: "qloo" | "sample"; onClose: () => void; onCopied?: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   useEffect(() => {
@@ -20,7 +20,7 @@ export function RequestPanel({ request, mode, onClose }: { request?: RedactedReq
     : "";
 
   return (
-    <div ref={ref} tabIndex={-1} role="dialog" aria-label="The Qloo request" className="fixed inset-x-0 bottom-0 lg:inset-y-0 lg:left-auto lg:right-0 lg:w-[380px] max-h-[70dvh] lg:max-h-none overflow-auto bg-surface-1 border-t lg:border-t-0 lg:border-l border-line shadow-[var(--shadow-overlay)] p-5 z-20 outline-none">
+    <div ref={ref} tabIndex={-1} role="dialog" aria-label="The Qloo request" className="panel-enter fixed inset-x-0 bottom-0 lg:inset-y-0 lg:left-auto lg:right-0 lg:w-[380px] max-h-[70dvh] lg:max-h-none overflow-auto bg-surface-1 border-t lg:border-t-0 lg:border-l border-line rounded-t-lg lg:rounded-none shadow-[var(--shadow-overlay)] p-5 z-20 outline-none">
       <div className="flex items-start justify-between gap-3">
         <h2 className="m-0 font-display font-bold text-[13px] uppercase tracking-[0.08em]">The Qloo request</h2>
         <button type="button" onClick={onClose} className="text-[13px] text-ink-muted underline underline-offset-2">
@@ -64,7 +64,7 @@ export function RequestPanel({ request, mode, onClose }: { request?: RedactedReq
             <button
               type="button"
               onClick={() => {
-                navigator.clipboard?.writeText(curl).then(() => setCopied(true)).catch(() => {});
+                navigator.clipboard?.writeText(curl).then(() => { setCopied(true); onCopied?.(); }).catch(() => {});
               }}
               className="self-start h-8 px-3 rounded-md bg-surface-2 font-display font-bold text-[13px]"
             >

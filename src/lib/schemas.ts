@@ -42,6 +42,7 @@ export type Verdict = {
   checked: number;
   failed: SourceName[];
   heldItem?: CollectionItem;
+  heldCoverUrl?: string | null;
   /** for not_held: the first external source that found it */
   foundElsewhere?: { source: SourceName; record: FoundRecord };
   titleOnlyBy?: string;
@@ -67,7 +68,8 @@ export type RecoveredBook = {
   /** per-seed contribution, 0..1, when the taste API returns it */
   explain?: { seed: string; share: number }[];
   reason: string;
-  coverUrl: string;
+  /** by Open Library cover id when the collection map has one; null means "show the spine" */
+  coverUrl: string | null;
 };
 
 export type RecoverMode = "qloo" | "sample";
