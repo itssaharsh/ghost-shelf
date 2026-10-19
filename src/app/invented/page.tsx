@@ -9,7 +9,7 @@ export default function InventedPage() {
       <header className="flex flex-col gap-2 max-w-[70ch]">
         <h1 className="m-0 font-display font-bold text-[28px] tracking-[-0.01em]">Invented titles</h1>
         <p className="m-0 text-[17px] text-ink-muted">
-          Titles patrons asked for that no source could find. Logged from the desk, counted once per title and author.
+          Titles patrons asked for that no source could find. Logged from the desk, counted once per title and author. Example entries: the ten invented titles printed in the Chicago Sun-Times insert of 18 May 2025 (as reported by CBS News). Counts are this demo&rsquo;s own.
           {storageMode() === "memory" ? " Records live in memory until the database is connected, so they reset on deploy." : ""}
         </p>
       </header>

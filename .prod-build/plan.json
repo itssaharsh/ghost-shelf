@@ -371,8 +371,10 @@
         "npm run build"
       ],
       "rollback": "git revert",
-      "status": "todo",
-      "notes": ""
+      "status": "doing",
+      "notes": "",
+      "base": "8d3dea3",
+      "started_after": 67
     },
     {
       "id": "T10",

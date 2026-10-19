@@ -10,6 +10,7 @@ import { PatronCard } from "./PatronCard";
 import { Shelf } from "./Shelf";
 import { SeedsRow } from "./SeedsRow";
 import { RequestPanel } from "./RequestPanel";
+import { RunLog, type RunLogLine } from "./RunLog";
 import { buildFixture, freshDrawers, type Drawer, type Drawers, type HoldsState, type LogState, type Phase, type ShelfState, type Snapshot } from "./fixtures";
 
 type Props = {
@@ -51,13 +52,18 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
   const [record, setRecord] = useState(false);
   const [fixture, setFixture] = useState<string | null>(null);
   const [status, setStatus] = useState("");
+  const [runLog, setRunLog] = useState<RunLogLine[]>([]);
   const [runKey, setRunKey] = useState(0);
   const stopRef = useRef<() => void>(() => {});
   const timerRef = useRef<number | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const checkedRun = useRef<{ title: string; author: string } | null>(null);
 
-  const announce = useCallback((s: string) => setStatus(s), []);
+  // Every announcement is also a line in the run log (the agent's steps, timed from the first).
+  const announce = useCallback((s: string) => {
+    setStatus(s);
+    setRunLog((l) => [...l, { at: Date.now(), text: s }]);
+  }, []);
 
   const applySnapshot = useCallback((s: Snapshot) => {
     setTitle(s.title);
@@ -90,7 +96,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
         if (!res.ok) throw new Error("Couldn't reach the taste graph.");
         const json = (await res.json()) as RecoverResult;
         setShelf({ status: "ready", result: json });
-        announce(json.books.length ? `${json.books.length} held books on the shelf` : "No held book matched");
+        announce(json.mode === "qloo" ? `Qloo: ${json.seeds.length} seed${json.seeds.length === 1 ? "" : "s"} resolved, ${json.books.length} held books on the shelf` : `Sample mode: ${json.books.length} held books on the shelf (not ranked by taste)`);
       } catch (err) {
         setShelf({ status: "error", error: err instanceof Error ? err.message : "Couldn't reach the taste graph." });
       }
@@ -121,8 +127,9 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
       setLog({ state: "idle" });
       setPanelOpen(false);
       setRunKey((k) => k + 1);
+      setRunLog([]);
       checkedRun.current = { title: tt, author: a.trim() };
-      announce(`Checking ${sources.map(label).join(", ")}`);
+      announce(`Checking ${sources.map(label).join(", ")} for "${tt}"${a.trim() ? ` by ${a.trim()}` : ""}`);
       const go = () => {
         setDrawers(freshDrawers(sources, "opening"));
         stopRef.current = openCheckStream(
@@ -407,6 +414,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
             </div>
 
             {verdict && (verdict.kind === "no_record" || verdict.kind === "unchecked") && <SeedsRow seeds={seeds} onChange={onSeedsChange} unresolved={shelf.result?.unresolved ?? []} />}
+            <RunLog lines={runLog} />
           </section>
 
           {/* RIGHT: the shelf */}

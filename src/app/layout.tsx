@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Courier_Prime, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
+import "./print.css";
 import { Providers } from "@/components/Providers";
 import { TopBar } from "@/components/TopBar";
 

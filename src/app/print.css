@@ -1,0 +1,57 @@
+/* The patron slip: what prints is the card and the checks, on one sheet. */
+@media print {
+  @page {
+    margin: 16mm;
+  }
+  html {
+    font-size: 12pt;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  header,
+  nav,
+  .no-print,
+  [aria-label="Held books"],
+  [aria-label="What did they like"],
+  [aria-label="Try one"],
+  form,
+  .judge-card,
+  .drawer-card a,
+  button {
+    display: none !important;
+  }
+  [aria-label="The three checks"] {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6mm !important;
+  }
+  [aria-label="The three checks"] section {
+    flex-direction: column !important;
+    min-height: 0 !important;
+    break-inside: avoid;
+  }
+  .drawer-card {
+    transform: none !important;
+    opacity: 1 !important;
+    box-shadow: none !important;
+    margin: 2mm !important;
+  }
+  article,
+  section,
+  .card-rise,
+  .fade-through {
+    animation: none !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+  .print-slip-head {
+    display: block !important;
+  }
+  .bg-card-stock,
+  .bg-surface-sunken,
+  .bg-canvas {
+    background: #fff !important;
+  }
+}

@@ -22,10 +22,17 @@ export function PatronCard({ phase, verdict, error, title, author, sources }: { 
   const failedNames = verdict.failed.map((s) => SOURCE_LABEL[s]);
   const checkedNames = sources.filter((s) => !verdict.failed.includes(s)).map(label);
   const base = "bg-card-stock border border-line rounded-md px-7 py-6 flex flex-col gap-2.5";
+  const slipHead = (
+    <p className="print-slip-head hidden m-0 text-[13px] text-ink-muted">
+      Ghost Shelf · reference desk slip · {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })} · asked for: {title}
+      {author ? ` by ${author}` : ""}
+    </p>
+  );
   if (verdict.kind === "held" && verdict.heldItem) {
     const it = verdict.heldItem;
     return (
       <article className={base} aria-live="polite">
+        {slipHead}
         <h2 className="m-0 font-display font-bold text-[24px] tracking-[-0.01em]">Exists, and we hold it.</h2>
         <p className="m-0 text-[20px] leading-[1.45]">
           {it.title} by {it.author}
@@ -40,6 +47,7 @@ export function PatronCard({ phase, verdict, error, title, author, sources }: { 
     const q = new URLSearchParams({ q: `${title} ${author}` });
     return (
       <article className={base} aria-live="polite">
+        {slipHead}
         <h2 className="m-0 font-display font-bold text-[24px] tracking-[-0.01em]">Exists; we don&rsquo;t hold it.</h2>
         <p className="m-0 text-[20px] leading-[1.45]">
           {SOURCE_LABEL[f.source]} lists {f.record.title}
@@ -65,6 +73,7 @@ export function PatronCard({ phase, verdict, error, title, author, sources }: { 
   }
   return (
     <article className={base} aria-live="polite">
+      {slipHead}
       <h2 className="m-0 font-display font-bold text-[24px] tracking-[-0.01em]">
         No record in {verdict.checked} {verdict.checked === 1 ? "source" : "sources"}.
       </h2>

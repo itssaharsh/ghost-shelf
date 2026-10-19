@@ -55,7 +55,11 @@
       "source": "https://docs.qloo.com/reference/qloo-llm-hackathon-developer-guide",
       "dq": false,
       "kind": "attest",
-      "added": "2026-10-19T13:34:47Z"
+      "added": "2026-10-19T13:34:47Z",
+      "confirmed": {
+        "evidence": "git grep -il qloo -- data/ returns nothing (2026-10-19); the holdings map and cache tables live only in Postgres (src/db/schema.ts entity_map, qloo_cache); the redacted request stores parameters, never responses beyond a three-entity excerpt in the database",
+        "at": "2026-10-19T16:51:06Z"
+      }
     },
     {
       "id": "hackathon-host-only",
