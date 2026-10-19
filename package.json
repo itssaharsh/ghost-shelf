@@ -6,21 +6,35 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "fetch:collection": "node scripts/fetch-collection.mjs",
+    "db:push": "dotenv -e .env.local -- drizzle-kit push",
+    "db:seed": "dotenv -e .env.local -- tsx scripts/seed.ts"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.2.0",
+    "@number-flow/react": "^0.6.2",
+    "@phosphor-icons/react": "^2.1.10",
+    "drizzle-orm": "^0.45.4",
+    "motion": "^14.4.0",
     "next": "16.4.2",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "sonner": "^2.0.8"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
-    "@types/node": "^20",
+    "@types/node": "^22.20.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv-cli": "^11.0.0",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
