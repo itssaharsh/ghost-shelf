@@ -98,9 +98,11 @@ No Qloo response data is stored in this repository: `data/` holds the collection
 
 Recent and small-press titles may be missing from the sources checked, so the card never says a book does not exist. The collection is a demo slice of one library's data. Holds and the registry are this demo's own. Until the database is connected, records live in memory and reset on deploy; until the Qloo key is active, the shelf runs in sample mode and says so.
 
-## Timeline
+## Timeline and tools
 
 Planning (idea research, UI spec) came before the first commit on 19 October 2026; all code was written inside the hackathon window. Built for the Qloo Agentic Hackathon on Devpost.
+
+AI coding tools: Claude Code (Anthropic's Claude) wrote and ran most of the code under the builder's direction, with the builder reviewing, testing and deciding what shipped. The demo video's narration is a synthetic voice (Kokoro), and the video says so where it matters: the hackathon key was pending when it was recorded.
 
 ## Layout
 

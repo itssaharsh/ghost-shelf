@@ -1,6 +1,4 @@
-# Ghost Shelf
-
-**A desk tool for book titles a chatbot made up.**
+Ghost Shelf is a desk tool for book titles a chatbot made up: three checks with receipts, a card for the patron, and three held books recovered through Qloo.
 
 Live: https://ghost-shelf.vercel.app · Repository: https://github.com/itssaharsh/ghost-shelf · License: MIT
 
