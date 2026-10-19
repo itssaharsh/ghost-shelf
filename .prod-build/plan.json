@@ -343,8 +343,10 @@
         "observe: a recording of the deployed run exists and is linked in state.md"
       ],
       "rollback": "n/a",
-      "status": "skip",
-      "notes": "product-demo-video gets the URL and the script\n[2026-10-19 skip] merged into T14: one recording after the gates serves as the take; a video is optional for this event and the live URL is the judged artefact"
+      "status": "doing",
+      "notes": "product-demo-video gets the URL and the script\n[2026-10-19 skip] merged into T14: one recording after the gates serves as the take; a video is optional for this event and the live URL is the judged artefact",
+      "base": "753603a",
+      "started_after": 84
     },
     {
       "id": "T09",
