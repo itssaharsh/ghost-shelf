@@ -275,7 +275,7 @@
       "verify": [
         "npm run typecheck",
         "npm run build",
-        "node scripts/verify-states.mjs --serve all --allow /lists,/about"
+        "node scripts/verify-states.mjs --serve all --allow /about"
       ],
       "rollback": "git revert",
       "status": "done",
@@ -396,10 +396,16 @@
         "npm run build"
       ],
       "rollback": "git revert",
-      "status": "doing",
+      "status": "done",
       "notes": "SHOULD; skip if the clock is short",
       "base": "dbcd942",
-      "started_after": 63
+      "started_after": 63,
+      "evidence": [
+        "E0064",
+        "E0065",
+        "E0066",
+        "E0067"
+      ]
     },
     {
       "id": "T11",

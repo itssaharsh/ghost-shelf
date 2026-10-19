@@ -63,7 +63,7 @@ function Placeholders({ label }: { label: string }) {
 }
 
 /** One held book: cover (or its spine), the hold tab once placed, and the reason it was chosen. T-03 on arrival, T-04 on hold. */
-export function Book({ book, index, held }: { book: RecoveredBook; index: number; held: boolean }) {
+export function Book({ book, index, held, onRemove }: { book: RecoveredBook; index: number; held: boolean; onRemove?: () => void }) {
   const [coverFailed, setCoverFailed] = useState(false);
   const showSpine = !book.coverUrl || coverFailed;
   return (
@@ -94,6 +94,14 @@ export function Book({ book, index, held }: { book: RecoveredBook; index: number
         <br />
         <span>{book.reason}</span>
         {typeof book.affinity === "number" && <span className="text-ink-muted tnum"> · match {book.affinity.toFixed(2)}, from Qloo</span>}
+        {onRemove && (
+          <>
+            <br />
+            <button type="button" onClick={onRemove} aria-label={`Remove ${book.title}`} className="text-[13px] text-ink-muted underline underline-offset-2 hover:text-ink">
+              Remove
+            </button>
+          </>
+        )}
       </motion.figcaption>
     </motion.figure>
   );

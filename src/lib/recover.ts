@@ -52,7 +52,15 @@ export function gateToHoldings(books: QlooBook[], items: CollectionItem[], map?:
   return out;
 }
 
-export type RecoverInput = { runId: string; seeds: Seed[]; excludeIsbns?: string[] };
+export type RecoverInput = {
+  runId: string;
+  seeds: Seed[];
+  excludeIsbns?: string[];
+  /** how many held titles to return (3 on the desk, 5 to 10 for a reading list) */
+  count?: number;
+  /** words the patron wants kept out: matched against title and subjects */
+  avoid?: string[];
+};
 
 export async function recover(input: RecoverInput, client: QlooClient, deps: { items?: CollectionItem[]; entityMap?: Map<string, string>; fallback?: QlooClient } = {}): Promise<RecoverResult> {
   const items = deps.items ?? collection.all();
@@ -108,7 +116,10 @@ export async function recover(input: RecoverInput, client: QlooClient, deps: { i
   }
 
   const exclude = new Set(input.excludeIsbns ?? []);
-  const gated = gateToHoldings(books, items, deps.entityMap).filter((g) => !exclude.has(g.item.isbn13)).slice(0, RECOVER_COUNT);
+  const avoid = (input.avoid ?? []).map((w) => w.trim().toLowerCase()).filter((w) => w.length > 1);
+  const avoided = (item: CollectionItem) => avoid.some((w) => item.title.toLowerCase().includes(w) || item.subjects.some((s) => s.toLowerCase().includes(w)));
+  const count = Math.max(1, Math.min(10, input.count ?? RECOVER_COUNT));
+  const gated = gateToHoldings(books, items, deps.entityMap).filter((g) => !exclude.has(g.item.isbn13) && !avoided(g.item)).slice(0, count);
   const out: RecoveredBook[] = gated.map(({ book, item }) => {
     const r = reasonLine(resolved, book, explainAvailable);
     return {
