@@ -343,8 +343,8 @@
         "observe: a recording of the deployed run exists and is linked in state.md"
       ],
       "rollback": "n/a",
-      "status": "todo",
-      "notes": "product-demo-video gets the URL and the script"
+      "status": "skip",
+      "notes": "product-demo-video gets the URL and the script\n[2026-10-19 skip] merged into T14: one recording after the gates serves as the take; a video is optional for this event and the live URL is the judged artefact"
     },
     {
       "id": "T09",
@@ -456,10 +456,16 @@
         "observe: foldcheck pass recorded on the live URL"
       ],
       "rollback": "n/a",
-      "status": "doing",
+      "status": "done",
       "notes": "the merged gate task for hackathon mode",
       "base": "1116519",
-      "started_after": 70
+      "started_after": 70,
+      "evidence": [
+        "E0074",
+        "E0080",
+        "E0081",
+        "E0082"
+      ]
     },
     {
       "id": "T13",
@@ -481,8 +487,14 @@
         "observe: axe 0 violations at 1440 on /, /invented, /lists, /about"
       ],
       "rollback": "n/a",
-      "status": "todo",
-      "notes": ""
+      "status": "done",
+      "notes": "",
+      "evidence": [
+        "E0075",
+        "E0076",
+        "E0083",
+        "E0084"
+      ]
     },
     {
       "id": "T14",
