@@ -65,6 +65,7 @@ function Placeholders({ label }: { label: string }) {
 /** One held book: cover (or its spine), the hold tab once placed, and the reason it was chosen. T-03 on arrival, T-04 on hold. */
 export function Book({ book, index, held, onRemove }: { book: RecoveredBook; index: number; held: boolean; onRemove?: () => void }) {
   const [coverFailed, setCoverFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const showSpine = !book.coverUrl || coverFailed;
   return (
     <motion.figure initial={{ x: 32, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: "spring", visualDuration: 0.35, bounce: 0.1, delay: index * 0.06 }} className="m-0 flex flex-col gap-2 min-w-0">
@@ -74,14 +75,13 @@ export function Book({ book, index, held, onRemove }: { book: RecoveredBook; ind
             On hold
           </span>
         )}
-        {showSpine ? (
-          <div className={`${SPINE[index % 3]} relative z-10 w-full aspect-[2/3] border border-line shadow-[var(--shadow-raised)] flex items-end p-2`} role="img" aria-label={`Cover not available: ${book.title}`}>
-            <span className="font-display font-bold text-[12px] lg:text-[13px] text-canvas [writing-mode:vertical-rl] rotate-180 overflow-hidden text-ellipsis max-h-full">{book.title}</span>
-          </div>
-        ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={book.coverUrl!} alt={`Cover of ${book.title}`} width={120} height={180} onError={() => setCoverFailed(true)} onLoad={(e) => { if (e.currentTarget.naturalWidth < 10) setCoverFailed(true); }} className="relative z-10 w-full aspect-[2/3] object-cover border border-line shadow-[var(--shadow-raised)] bg-card-stock" loading="eager" fetchPriority={index === 0 ? "high" : "auto"} decoding="async" />
-        )}
+        <div className={`${SPINE[index % 3]} relative z-10 w-full aspect-[2/3] border border-line shadow-[var(--shadow-raised)] flex items-end p-2 overflow-hidden`} role={showSpine ? "img" : undefined} aria-label={showSpine ? `Cover not available: ${book.title}` : undefined}>
+          <span aria-hidden={!showSpine || undefined} className="font-display font-bold text-[12px] lg:text-[13px] text-canvas [writing-mode:vertical-rl] rotate-180 overflow-hidden text-ellipsis max-h-full">{book.title}</span>
+          {!showSpine && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={book.coverUrl!} alt={`Cover of ${book.title}`} width={120} height={180} onError={() => setCoverFailed(true)} onLoad={(e) => { if (e.currentTarget.naturalWidth < 10) setCoverFailed(true); else setLoaded(true); }} className={`absolute inset-0 w-full h-full object-cover bg-card-stock transition-opacity duration-200 ${loaded ? "opacity-100" : "opacity-0"}`} loading="eager" fetchPriority={index === 0 ? "high" : "auto"} decoding="async" />
+          )}
+        </div>
       </div>
       <motion.figcaption initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.15, delay: index * 0.06 + 0.15 }} className="text-[13px] sm:text-[14px] leading-[1.4] min-w-0">
         <strong className="font-semibold">{book.title}</strong>

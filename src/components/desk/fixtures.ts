@@ -93,13 +93,11 @@ function liveShapeRequest(seeds: Seed[]): RedactedRequest {
     provider: "sample",
     note: "Fixture: these are the calls the live client sends; no request reached Qloo for this screen.",
     calls: [
-      ...seeds.map((s) => ({ name: "search", url: "https://hackathon.api.qloo.com/search", params: { query: s.name, types: s.kind === "film" ? "urn:entity:movie" : s.kind === "band" || s.kind === "artist" ? "urn:entity:artist" : s.kind === "author" ? "urn:entity:person" : s.kind === "book" ? "urn:entity:book" : "urn:entity:tv_show", take: "3" }, ms: 210, status: 200 })),
+      ...seeds.map((s) => ({ name: "search", url: "https://hackathon.api.qloo.com/search", params: { query: s.name, types: s.kind === "film" ? "urn:entity:movie" : s.kind === "band" || s.kind === "artist" ? "urn:entity:artist" : s.kind === "author" ? "urn:entity:person" : s.kind === "book" ? "urn:entity:book" : "urn:entity:tv_show", take: "3" } })),
       {
         name: "insights",
         url: "https://hackathon.api.qloo.com/v2/insights",
         params: { "filter.type": "urn:entity:book", "signal.interests.entities": `<${seeds.length} resolved entity ids>`, "filter.results.entities": "<up to 150 held entity ids per chunk>", "feature.explainability": "true", take: "50" },
-        ms: 640,
-        status: 200,
       },
     ],
     holdingsChunks: 0,

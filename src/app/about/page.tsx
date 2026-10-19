@@ -51,7 +51,7 @@ export default function AboutPage() {
 
       <section className="flex flex-col gap-3">
         <h2 className="m-0 font-display font-bold text-[20px]">What is live and what is simulated</h2>
-        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0" tabIndex={0} role="region" aria-label="Table, scrolls sideways on narrow screens">
           <table className="w-full border-collapse text-[15px] min-w-[560px]">
             <tbody>
               {LIVE_VS_SIMULATED.map(([part, note]) => (

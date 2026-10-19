@@ -25,7 +25,7 @@ async function Rows() {
   const rows = await getRepo().registry();
   if (rows.length === 0) return <p className="m-0 text-[17px]">Nothing logged yet.</p>;
   return (
-    <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+    <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0" tabIndex={0} role="region" aria-label="Table, scrolls sideways on narrow screens">
       <table className="w-full border-collapse text-[15px] min-w-[640px]">
         <thead>
           <tr className="text-left font-display text-[13px] uppercase tracking-[0.08em] text-ink-muted border-b border-line">

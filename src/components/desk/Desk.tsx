@@ -132,15 +132,30 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
       announce(`Checking ${sources.map(label).join(", ")} for "${tt}"${a.trim() ? ` by ${a.trim()}` : ""}`);
       const go = () => {
         setDrawers(freshDrawers(sources, "opening"));
+        let lastEvent = Date.now();
+        // the stream died (offline, a 429, a server error): every drawer still open says so, and the card names the failure
+        const fail = (message: string) => {
+          stopRef.current();
+          setDrawers((d) => {
+            const next = { ...d };
+            for (const s of sources) if (next[s]?.status !== "done") next[s] = { source: s, status: "done", result: { source: s, result: "failed", ms: 0, detail: "did not answer (no connection)" } };
+            return next;
+          });
+          setCheckError(message);
+          setPhase("checked");
+          announce(message);
+        };
         stopRef.current = openCheckStream(
           { title: tt, author: a.trim() },
           (e: CheckEvent) => {
+            lastEvent = Date.now();
             if (e.type === "start") setRunId(e.runId);
             if (e.type === "source") {
               setDrawers((d) => ({ ...d, [e.source]: { source: e.source, status: "done", result: e } }));
               announce(`${SOURCE_LABEL[e.source]}: ${e.result === "found" ? "found" : e.result === "no_record" ? "no record" : "did not answer"}, ${(e.ms / 1000).toFixed(2)} seconds`);
             }
             if (e.type === "verdict") {
+              stopRef.current();
               setVerdict(e.verdict);
               setPhase("checked");
               setDrawers((d) => {
@@ -152,18 +167,17 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
               if (e.verdict.kind === "no_record" || e.verdict.kind === "unchecked") void recover(e.runId, seedList);
             }
           },
-          (message) => {
-            // the stream died (offline, a 429, a server error): every drawer still open says so, and the card names the failure
-            setDrawers((d) => {
-              const next = { ...d };
-              for (const s of sources) if (next[s]?.status !== "done") next[s] = { source: s, status: "done", result: { source: s, result: "failed", ms: 0, detail: "did not answer (no connection)" } };
-              return next;
-            });
-            setCheckError(message);
-            setPhase("checked");
-            announce(message);
-          },
+          fail,
         );
+        // a stream that goes silent for 12 s (offline, a dropped connection) is over: the server gives each source 6 s
+        const watchdog = window.setInterval(() => {
+          if (Date.now() - lastEvent > 12000) fail("The checks did not answer. Check the connection and try again.");
+        }, 1000);
+        const stopStream = stopRef.current;
+        stopRef.current = () => {
+          window.clearInterval(watchdog);
+          stopStream();
+        };
       };
       timerRef.current = window.setTimeout(go, hadRun ? 150 : 0);
     },
@@ -341,10 +355,10 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
                 type="button"
                 onClick={() => pickPreset(p)}
                 aria-pressed={active}
-                aria-label={`${invented ? "Invented title" : "Real title"}: ${p.title} by ${p.author}`}
                 className={`shrink-0 h-8 px-3 rounded-md border text-[14px] inline-flex items-center gap-2 transition-colors duration-150 ${active ? "bg-ink text-canvas border-ink" : "bg-canvas text-ink border-line hover:bg-surface-2"}`}
               >
                 <span aria-hidden="true" className={`inline-block size-2 rounded-full ${invented ? "bg-danger" : "border-[1.5px] border-current"}`} />
+                <span className="sr-only">{invented ? "Invented title: " : "Real title: "}</span>
                 {presetLabel[p.id]}
               </button>
             );
@@ -355,7 +369,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
 
       <div className="relative flex-1 px-4 sm:px-8 lg:px-20 pt-4 sm:pt-6 pb-28 lg:pb-10 max-w-[1440px] w-full mx-auto">
         {judgeCard && (
-          <aside className="judge-card no-print lg:absolute lg:right-20 lg:top-0 lg:w-[360px] mb-4 lg:mb-0 bg-card-stock border border-line rounded-md p-3 text-[13px] leading-[1.45] flex gap-3 items-start" aria-label="How to judge this">
+          <aside className="judge-card no-print lg:ml-auto lg:w-[360px] mb-4 bg-card-stock border border-line rounded-md p-3 text-[13px] leading-[1.45] flex gap-3 items-start" aria-label="How to judge this">
             <div className="flex-1">
               <strong className="font-display font-bold">How to judge this in 90 seconds</strong>
               <br />
@@ -367,9 +381,10 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
           </aside>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-6 gap-y-6 lg:mt-14">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-6 gap-y-6">
           {/* LEFT: title, drawers, patron card, seeds */}
           <section className="lg:col-span-7 flex flex-col gap-3 sm:gap-4" aria-label="Check a title">
+            <p className="hidden sm:block m-0 text-[15px] text-ink-muted max-w-[64ch] not-for-record">Patrons arrive with titles a chatbot made up. Check three sources, show them the card, then hand them three books you hold.</p>
             <form
               className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-3"
               onSubmit={(e) => {
@@ -432,7 +447,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
             <p className="text-[13px] text-ink-muted leading-[1.45]">
               Demo collection: about {collectionSize.toLocaleString("en-US")} most-borrowed 2025 titles at Seattle Public Library (public domain).{" "}
               {shelf.result ? (shelf.result.mode === "qloo" ? "Books ranked by Qloo, a taste database." : modeNote) : qlooConfigured ? "Books ranked by Qloo, a taste database." : "Sample mode until the Qloo key is active."}{" "}
-              Covers from Open Library.{storage === "memory" ? " Holds and the registry live in memory until the database is connected; they reset on deploy." : ""}
+              Covers from Open Library.{storage === "memory" ? " Holds and the log are kept for this demo session only." : ""}
             </p>
             <div className="hidden lg:flex gap-3 items-center flex-wrap">
               <button type="button" data-primary="reserve" onClick={reserve} aria-disabled={!canReserve || undefined} className={`${buttonBase} min-w-[200px] ${holdsPlaced ? "bg-success text-accent-ink" : canReserve ? "bg-accent text-accent-ink hover:bg-[var(--accent-hover)]" : "bg-surface-2 text-ink-muted"}`}>
