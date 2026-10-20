@@ -16,7 +16,7 @@ Ghost Shelf checks the title against the catalog, Open Library and a third publi
 - A second desk for reading-list requests: a patron's form becomes five to ten held books with reasons and a draft reply, never sent.
 
 ## How Qloo is used
-Search resolves each thing the patron named to an entity (`/search` with the entity type from the seed's kind). Insights (`/v2/insights`) asks for books with `filter.type=urn:entity:book`, `signal.interests.entities` = the seeds, `filter.results.entities` = the collection's own entity ids in chunks of 150 (so the answer can only be held books), `filter.exclude.entities`, `feature.explainability=true` and `take=50`. Explainability becomes the reason line ("because you named The Martian 61%, Radiohead 39%"). The holdings map is built once with the key and lives in the database; no Qloo response data is in the repository.
+Search resolves each thing the patron named to an entity (`/search` with the entity type from the seed's kind). Insights (`/v2/insights`) asks for books with `filter.type=urn:entity:book`, `signal.interests.entities` = the seeds, `filter.results.entities` = the collection's own entity ids in chunks of 150 (so the answer can only be held books), `filter.exclude.entities`, `feature.explainability=true` and `take=50`. Explainability becomes the reason line ("because you named The Martian 61%, Radiohead 39%"). The holdings map (1,165 of the 3,000 held titles resolved to Qloo book entities) was built once with the key and lives in the database; no Qloo response data is in the repository. Answers are cached for a day so a repeated preset costs no calls.
 
 ## What makes it Qloo-powered
 A catalog can match an author. It cannot take "The Martian" and "Radiohead" and return three held novels with reasons the librarian can say across the desk. Take the key away and the shelf says so: the checks and the card still run live, the recovery step shows a labelled sample mode.
@@ -28,7 +28,7 @@ The desk checks three sources concurrently and streams each answer, decides the 
 Next.js 16 (App Router, Cache Components) on Vercel, Server-Sent Events for the checks, Drizzle with Neon Postgres (an in-memory adapter until the database is connected), Open Library and the Internet Archive as public sources, Qloo's hackathon API behind a server-side client. Data: about 3,000 of the most-borrowed 2025 titles from Seattle Public Library's public-domain checkout dataset; the ten invented titles from the CBS News report on the Chicago Sun-Times insert.
 
 ## Challenges and what is simulated
-Keyless Google Books rate-limits shared hosts, so the Internet Archive takes the third drawer unless a key is set. Holds go to a demo list, not a library system. The hackathon key is issued by hand; until it is active the deployment runs in sample mode and says so on screen.
+Keyless Google Books rate-limits shared hosts, so the Internet Archive takes the third drawer unless a key is set. Holds go to a demo list, not a library system. Qloo's Insights URL tops out near 10 KB, so the holdings filter goes in chunks of 200 entity ids; the hackathon key rate-limits bursts, so a 429 is retried once and otherwise the shelf falls back to a labelled sample mode for that run.
 
 ## What's next
 The live Qloo switch-on with the holdings map, a real catalog behind the first drawer, and the registry shared between libraries.

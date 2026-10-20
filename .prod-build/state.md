@@ -2,8 +2,8 @@
 Updated: 2026-10-19 | mode: hackathon | channel: direct | phase: 4-gates-and-takes
 
 ## Now
-- Phase / current task: T08 backup take recording (demo/storyboard.json against the live URL); T11 blocked on the Qloo key; T14/T15 pending
-- Last good commit: see `git log -1`            Last good deploy: https://ghost-shelf.vercel.app (2026-10-19, Neon Postgres, sample mode until the key)
+- Phase / current task: T14 final take recording (demo/storyboard.json against the live URL in Qloo mode); T15 submit check ready; T08 merged into T14
+- Last good commit: see `git log -1`            Last good deploy: https://ghost-shelf.vercel.app (2026-10-20, Neon Postgres, live Qloo mode with the holdings map)
 
 ## What worked (with evidence IDs)
 - Golden path and every ?state= at 1440/390/320 on the live URL (E0078); QA script: demo x3 with reset, offline injection, axe 0 violations (E0079)
@@ -17,14 +17,14 @@ Updated: 2026-10-19 | mode: hackathon | channel: direct | phase: 4-gates-and-tak
 - Open Library search's `editions` subfield returned empty for isbn queries; /isbn/<isbn>.json gives edition covers (slow, run once)
 
 ## Not tried yet / open questions
-- Qloo key (A-1): requested by the builder; when it arrives: set QLOO_API_KEY on Vercel, `npm run map:build`, redeploy, record T11 evidence, re-record the final take
+- Map coverage: 1,165 of 3,000 titles (849 fiction); unmatched titles cannot be recommended; a second pass with looser title matching could raise it
 
 ## Changes that need care (migrations applied, deploys, destructive ops)
 - Neon connected 2026-10-19: schema pushed with drizzle-kit, ten example rows seeded; smoke rows removed
 - GitHub repo itssaharsh/ghost-shelf is PUBLIC (2026-10-19)
 
-## Backup take
-- demo/final.mp4 (after compose) with demo/script.md and demo/thumbnail; storyboard demo/storyboard.json; sample mode stated in the narration
+## Final take
+- demo/final.mp4 (after compose) with demo/script.md and demo/thumbnail; storyboard demo/storyboard.json; recorded in live Qloo mode on 2026-10-20
 
 ## Exact next step
 - compose + qa the take (demo/), deploy the edition covers, then T15: `pb.py submit check --live https://ghost-shelf.vercel.app --readme README.md --description .prod-build/submission/devpost-description.md`, flip the repo public, confirm rules, hand the user the checklist
