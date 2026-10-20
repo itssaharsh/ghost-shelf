@@ -397,11 +397,10 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
 
       <div className="relative flex-1 px-4 sm:px-8 lg:px-20 pt-4 sm:pt-6 pb-28 lg:pb-10 max-w-[1440px] w-full mx-auto">
         {judgeCard && (
-          <aside className="judge-card no-print lg:ml-auto lg:w-[360px] mb-4 bg-card-stock border border-line rounded-md p-3 text-[13px] leading-[1.45] flex gap-3 items-start" aria-label="How to judge this">
-            <div className="flex-1">
+          <aside className="judge-card no-print mb-4 bg-card-stock border border-line rounded-md px-3 py-2 text-[13px] leading-[1.45] flex gap-3 items-start lg:items-center" aria-label="How to judge this">
+            <div className="flex-1 lg:flex lg:gap-x-4 lg:flex-wrap">
               <strong className="font-display font-bold">How to judge this in 90 seconds</strong>
-              <br />
-              1 Click an invented title (red dot). 2 Watch the three checks answer. 3 Read the card you&rsquo;d turn to the patron. 4 Reserve the 3 books. 5 Open the Qloo request.
+              <span className="block lg:inline">1 Click an invented title (red dot). 2 Watch the three checks answer. 3 Read the card you&rsquo;d turn to the patron. 4 Reserve the 3 books. 5 Open the Qloo request.</span>
             </div>
             <button type="button" onClick={hideJudgeCard} className="text-ink-muted text-[13px] underline-offset-2 hover:underline" aria-label="Hide the judge card">
               Hide
@@ -411,7 +410,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-6 gap-y-6">
           {/* LEFT: title, drawers, patron card, seeds */}
-          <section className="lg:col-span-7 flex flex-col gap-3 sm:gap-4" aria-label="Check a title">
+          <section className="lg:col-span-6 flex flex-col gap-3 sm:gap-4" aria-label="Check a title">
             <p className="hidden sm:block m-0 text-[15px] text-ink-muted max-w-[64ch] not-for-record">Patrons arrive with titles a chatbot made up. Check three sources, show them the card, then hand them three books you hold.</p>
             <form
               className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-3"
@@ -468,7 +467,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
           </section>
 
           {/* RIGHT: the shelf */}
-          <section className="lg:col-span-5 flex flex-col gap-3" aria-label="Held books">
+          <section className="lg:col-span-6 flex flex-col gap-3" aria-label="Held books">
             <div key={`shelf-${runKey}`} className="fade-through">
               <Shelf phase={phase} verdict={verdict} shelf={shelf} heldItem={heldItem} heldCoverUrl={verdict?.heldCoverUrl} seeds={seeds} held={holdsPlaced} onRetry={() => !fixture && runId && recover(runId, seeds)} />
             </div>

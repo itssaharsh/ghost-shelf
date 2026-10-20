@@ -15,7 +15,7 @@ export function Shelf({ phase, verdict, shelf, heldItem, heldCoverUrl, seeds, he
   return (
     <div className="flex flex-col gap-3">
       <h2 className="m-0 font-sans font-semibold text-[17px]">{heading}</h2>
-      <div className="bg-surface-sunken px-4 sm:px-5 pt-7 pb-5 border-b-[6px] border-shelf-edge min-h-[300px] overflow-hidden" aria-live="polite" aria-busy={shelf.status === "loading" || undefined}>
+      <div className="bg-surface-sunken px-4 sm:px-5 pt-6 pb-4 border-b-[6px] border-shelf-edge min-h-[280px] overflow-hidden" aria-live="polite" aria-busy={shelf.status === "loading" || undefined}>
         {heldItem ? (
           <div className="grid grid-cols-3 gap-3 sm:gap-5">
             <Book book={{ isbn13: heldItem.isbn13, title: heldItem.title, author: heldItem.author, year: heldItem.year, publisher: heldItem.publisher, checkouts2025: heldItem.checkouts2025, reason: "the title they asked for", coverUrl: heldCoverUrl ?? null }} index={0} held={held} />
