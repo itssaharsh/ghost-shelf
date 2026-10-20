@@ -58,6 +58,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
   const timerRef = useRef<number | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const checkedRun = useRef<{ title: string; author: string } | null>(null);
+  const [checked, setChecked] = useState<{ title: string; author: string } | null>(null); // the same value, for rendering
   const runSeq = useRef(0); // a late /api/recover answer from an earlier run must not land on the current shelf
 
   // Every announcement is also a line in the run log (the agent's steps, timed from the first).
@@ -82,6 +83,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
     setEmptyTitle(s.emptyTitle);
     setCheckError(s.checkError);
     checkedRun.current = s.title ? { title: s.title, author: s.author } : null;
+    setChecked(checkedRun.current);
     runSeq.current += 1;
     setRunKey((k) => k + 1);
   }, []);
@@ -134,6 +136,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
       setRunLog([]);
       const seq = ++runSeq.current;
       checkedRun.current = { title: tt, author: a.trim() };
+      setChecked(checkedRun.current);
       announce(`Checking ${sources.map(label).join(", ")} for "${tt}"${a.trim() ? ` by ${a.trim()}` : ""}`);
       const go = () => {
         setDrawers(freshDrawers(sources, "opening"));
@@ -190,9 +193,11 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
   );
 
   // Mount: ?state= renders a fixture; ?judge=1 shows the judge card; ?record=1 is the recording view. Otherwise the finished run of preset 1.
+  // The URL only exists in the browser, so this state is set from an effect on purpose (a lazy initialiser would mismatch the server HTML).
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const rec = params.get("record") === "1";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRecord(rec);
     const wanted = !rec && (params.get("judge") === "1" || (demo && params.get("judge") !== "0"));
     let dismissed = false;
@@ -237,7 +242,9 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
   };
   const replay = () => startCheck(title, author, seeds);
   const shortcuts = useRef({ reset, replay });
-  shortcuts.current = { reset, replay };
+  useEffect(() => {
+    shortcuts.current = { reset, replay };
+  });
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!e.altKey || !e.shiftKey) return;
@@ -338,7 +345,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
   const modeNote = shelf.result?.modeNote ?? "";
   const presetLabel = useMemo(() => Object.fromEntries(presets.map((p) => [p.id, `${p.title} · ${p.author}`])), [presets]);
   // Check takes the accent only when the fields hold a title that has not been checked yet (then it is the only action).
-  const dirty = !checkedRun.current || checkedRun.current.title !== title.trim() || checkedRun.current.author !== author.trim();
+  const dirty = !checked || checked.title !== title.trim() || checked.author !== author.trim();
   const checkAccent = dirty && phase !== "checking" && title.trim().length > 0;
   const holdsPlaced = holds.state === "done";
   const buttonBase = "h-11 px-4 rounded-md font-display font-bold text-[15px] transition-colors duration-150 active:scale-[.97]";

@@ -54,7 +54,7 @@ if (editions) {
           const id = (ed.covers ?? []).find((c) => typeof c === "number" && c > 0);
           if (id) { if (covers[isbn] !== id) editionHits++; covers[isbn] = id; }
           break;
-        } catch (err) {
+        } catch {
           await sleep(3000);
         }
       }

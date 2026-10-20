@@ -106,4 +106,4 @@ AI coding tools: Claude Code (Anthropic's Claude) wrote and ran most of the code
 
 ## Layout
 
-`src/app` pages and routes (`/`, `/invented`, `/lists`, `/about`, `/api/check`, `/api/recover`, `/api/holds`, `/api/log`, `/api/registry`, `/api/request/last`, `/api/lists`, `/api/cover/[id]`) · `src/lib` the check, the sources, the Qloo client (live and sample), recovery, normalisation · `src/db` the Drizzle schema and the memory and Postgres adapters · `src/components/desk` the desk, its fixtures and choreography · `tests` the Node test suite · `scripts` data, covers and the browser gate · `docs/memory` decision and failure records.
+`src/app` pages and routes (`/`, `/invented`, `/lists`, `/about`, `/api/check`, `/api/recover`, `/api/holds`, `/api/log`, `/api/registry`, `/api/request/last`, `/api/lists`, `/api/cover/[id]`) · `src/lib` the check, the sources, the Qloo client (live and sample), recovery, normalisation · `src/db` the Drizzle schema and the memory and Postgres adapters · `src/components/desk` the desk, its fixtures and choreography · `tests` the Node test suite · `scripts` data, covers and the browser gate.

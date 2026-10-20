@@ -80,3 +80,12 @@ qa/
 
 # demo video workspace (renders are large; the final take is linked from docs)
 demo/
+
+# build-tool records and agent notes stay local; judges get the product, its tests and its docs
+.prod-build/
+docs/memory/
+.agents/
+.claude/
+AGENTS.md
+CLAUDE.md
+skills-lock.json

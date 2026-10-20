@@ -1,5 +1,5 @@
 # Architecture — Ghost Shelf
-Mode: hackathon. Last structural change: 2026-10-19 (ADR-0001 to ADR-0005).
+Last structural change: 2026-10-20 (decisions 1 to 6 below).
 
 ## Overview
 A reference-desk tool. A librarian types the title a patron asked for; the server checks three sources concurrently and streams each answer as it lands (the demo collection, Open Library, and Google Books when a key is set, else the Internet Archive) and streams each result; the UI shows a plain card for the patron; if nothing was found and the patron named something they like (a film, a band, an author), the server asks Qloo for books the library holds that fit, with per-seed reasons; the librarian reserves them and logs the invented title. One Next.js app on Vercel, one Postgres (Neon), three public APIs, Qloo's hackathon API behind a server-side client with a labelled sample mode.
@@ -50,12 +50,13 @@ flowchart LR
 - ADR-0003 Qloo behind a `QlooClient` interface with `LiveQloo` and `SampleQloo` — the key is issued manually; the product must be complete and honest before it arrives.
 - ADR-0004 Server-sent events for the checks — the drawers must answer one by one as each source replies, which one JSON response cannot show.
 - ADR-0005 Neon via the Vercel Marketplace with Drizzle, lazy init, in-memory adapter for tests — one managed datastore, no build-time connection.
+- ADR-0006 The Internet Archive is the keyless third check; Google Books only with a key — Google Books rate-limits keyless hosts, the archive answers in under a second, and a match without an author needs an ISBN or a publisher because the archive holds uploads titled after famous books.
 
 ## Failure boundaries
 Every external call has a 6 s timeout (covers: the browser's). A failed source degrades its drawer and the card's count; a failed Qloo call degrades to sample mode with a label; a failed DB degrades reserve and log only. Holds are idempotent per (run id, isbn). Rate limits (20/min/IP on writes, 30 on checks, 120 on reads, 240 on covers) are per server instance (Fluid Compute reuses instances; acceptable for a demo, stated in src/lib/ratelimit.ts and the README). One retry inside a request: a Qloo 429 is retried once after a short wait (the hackathon key is rate-limited per minute); any other failed Qloo call falls back to sample mode, a failed source is reported and the run continues.
 
 ## Deployment
-Vercel project `ghost-shelf` (team lack-toes); production on the default `.vercel.app` URL. Env: `QLOO_API_KEY` (server), `DATABASE_URL` (Neon, from the Marketplace), `GOOGLE_BOOKS_API_KEY` (optional), `NEXT_PUBLIC_DEMO=1` on the demo deployment (judge card on by default). Deploy with `vercel deploy --prod` after `pb.py verify`; roll back with `vercel rollback`. Migrations: `drizzle-kit push` from a local shell with `.env.local` sourced; the seed script loads the collection and the ten example registry rows.
+Vercel project `ghost-shelf` (team lack-toes); production on the default `.vercel.app` URL. Env: `QLOO_API_KEY` (server), `DATABASE_URL` (Neon, from the Marketplace), `GOOGLE_BOOKS_API_KEY` (optional), `NEXT_PUBLIC_DEMO=1` on the demo deployment (judge card on by default). Deploy with `vercel deploy --prod` after `npm run typecheck && npm test && npm run build`; roll back with `vercel rollback`. Migrations: `drizzle-kit push` from a local shell with `.env.local` sourced; the seed script loads the collection and the ten example registry rows.
 
 ## Observability
 The check route logs a failure server-side with the title; Vercel runtime logs; the run row stores the verdict, the seeds, the mode, the redacted Qloo calls with their latency and a three-entity response excerpt; a root error boundary (src/app/error.tsx) keeps a thrown render from blanking the desk.
