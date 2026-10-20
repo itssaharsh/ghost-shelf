@@ -1,5 +1,6 @@
 // Log an invented title: insert, or count the same title and author once more.
 import { getRepo } from "@/db";
+import { findHeld } from "@/lib/collection";
 import { clientKey, limiterFor } from "@/lib/ratelimit";
 import type { Seed } from "@/lib/schemas";
 
@@ -32,10 +33,13 @@ export async function POST(request: Request) {
     if (isbn13 && t) recovered.push({ isbn13, title: t });
   }
   const repo = getRepo();
-  if (runId) {
-    // only a title no source had a record for belongs in the registry; an unknown run (another instance in memory mode) is accepted
-    const run = await repo.getRun(runId);
-    if (run?.verdictKind && run.verdictKind !== "no_record") return Response.json({ error: "Only a title with no record in any source can be logged" }, { status: 409 });
+  // only a title no source had a record for belongs in the registry
+  const run = runId ? await repo.getRun(runId) : null;
+  if (run && run.verdictKind !== "no_record") return Response.json({ error: "Only a title with no record in any source can be logged" }, { status: 409 });
+  if (!run) {
+    // no stored run: with a database that means no check happened; in memory mode (per instance) at least refuse a held title
+    if (repo.mode === "postgres") return Response.json({ error: "Check the title first; only a run that found no record can be logged" }, { status: 409 });
+    if (findHeld({ title, author })) return Response.json({ error: "That title is held here; it cannot be logged as invented" }, { status: 409 });
   }
   const { row, created, total } = await repo.logInvented({ runId, title, author, seeds, recovered });
   return Response.json({ count: total, timesLogged: row.count, created, id: row.id, storage: repo.mode });

@@ -53,9 +53,13 @@ export class PostgresRepo implements Repo {
       .values({ runId: input.runId, isbn13s: [...new Set(input.isbn13s)], title: input.title, author: input.author })
       .onConflictDoNothing({ target: schema.holds.runId })
       .returning();
-    if (inserted[0]) return { created: true, hold: inserted[0] as Hold };
+    if (inserted[0]) return { created: true, replaced: false, hold: inserted[0] as Hold };
     const [existing] = await this.db.select().from(schema.holds).where(eq(schema.holds.runId, input.runId)).limit(1);
-    return { created: false, hold: existing as Hold };
+    const wanted = [...new Set(input.isbn13s)];
+    const same = existing.isbn13s.length === wanted.length && existing.isbn13s.every((i) => wanted.includes(i));
+    if (same) return { created: false, replaced: false, hold: existing as Hold };
+    const [updated] = await this.db.update(schema.holds).set({ isbn13s: wanted, title: input.title, author: input.author }).where(eq(schema.holds.runId, input.runId)).returning();
+    return { created: false, replaced: true, hold: updated as Hold };
   }
 
   async logInvented(input: LogInput) {
@@ -77,6 +81,12 @@ export class PostgresRepo implements Repo {
       .returning();
     const [{ n }] = await this.db.select({ n: count() }).from(schema.registry);
     return { row: row as RegistryRow, created: row.count === 1, total: Number(n) };
+  }
+
+  async findRegistry(title: string, author: string): Promise<RegistryRow | null> {
+    await this.ensureSeeded();
+    const [row] = await this.db.select().from(schema.registry).where(eq(schema.registry.key, registryKey(title, author))).limit(1);
+    return (row as RegistryRow | undefined) ?? null;
   }
 
   async registry(): Promise<RegistryRow[]> {

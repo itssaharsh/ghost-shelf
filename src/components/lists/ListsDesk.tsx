@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Book } from "@/components/desk/Shelf";
-import { draftEmail, type ListRequest } from "@/lib/lists";
+import { draftEmail } from "@/lib/lists-draft";
+import type { ListRequest } from "@/lib/lists";
 import type { RecoverResult } from "@/lib/schemas";
 
 const SAMPLE: ListRequest = {

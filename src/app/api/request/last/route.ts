@@ -6,6 +6,7 @@ export async function GET(request: Request) {
   if (!limiterFor("read", 120).allow(clientKey(request))) return Response.json({ error: "Too many requests; try again in a minute" }, { status: 429 });
   const url = new URL(request.url);
   const runId = url.searchParams.get("runId")?.slice(0, 64) || undefined;
+  if (!runId) return Response.json({ error: "Pass ?runId=<run id>: the stored request belongs to one run" }, { status: 400 });
   const last = await getRepo().lastRequest(runId);
   if (!last) return Response.json({ error: "No request stored yet" }, { status: 404 });
   return Response.json(last);

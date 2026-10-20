@@ -25,5 +25,6 @@ export function RegistryCount() {
     };
   }, []);
   // T-05: the count ticks (300 ms); under reduced motion NumberFlow sets it directly.
-  return <NumberFlow value={count ?? 10} className="tnum" transformTiming={{ duration: 300, easing: "ease-out" }} spinTiming={{ duration: 300, easing: "ease-out" }} respectMotionPreference />;
+  if (count === null) return <span className="tnum text-ink-muted" aria-label="loading the count">…</span>;
+  return <NumberFlow value={count} className="tnum" transformTiming={{ duration: 300, easing: "ease-out" }} spinTiming={{ duration: 300, easing: "ease-out" }} respectMotionPreference />;
 }

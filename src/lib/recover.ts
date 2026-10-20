@@ -19,6 +19,10 @@ export function reasonLine(seeds: Seed[], book: QlooBook, explainAvailable: bool
     const total = parts.reduce((a, p) => a + p.share, 0);
     if (parts.length && total > 0) {
       const norm = parts.map((p) => ({ seed: p.seed, share: Math.round((p.share / total) * 100) / 100 }));
+      if (norm.length === 1) return { reason: `because you named ${norm[0].seed}`, explain: norm };
+      const spread = Math.round((norm[0].share - norm[norm.length - 1].share) * 100);
+      // shares within ten points of each other are not a ranking: say it fits all of them
+      if (spread <= 10) return { reason: `fits ${norm.map((p) => p.seed).join(" and ")} about equally`, explain: norm };
       return { reason: `because you named ${norm.map((p) => `${p.seed} ${Math.round(p.share * 100)}%`).join(", ")}`, explain: norm };
     }
   }
@@ -92,18 +96,22 @@ export async function recover(input: RecoverInput, client: QlooClient, deps: { i
   let holdingsChunks = 0;
   let explainAvailable = false;
   let excerpt: unknown;
+  let cacheNote: string | undefined;
+  let failNote: string | undefined;
 
   const run = async (c: QlooClient) => {
     // Qloo answers are cached for a day (database only, never the repository): a repeated preset costs no calls
     const cache = c.mode === "qloo" ? deps.cache : undefined;
     const seedKey = `qloo:search:v1:${seeds.map((s) => `${s.kind}:${s.name.trim().toLowerCase()}`).join("|")}`;
     let r = cache ? await cache.cacheGet<Awaited<ReturnType<QlooClient["resolveSeeds"]>>>(seedKey) : null;
-    if (r) calls.push({ name: "cache", url: "cache://search", params: { seeds: String(seeds.length) } });
+    let cachedSearch = false;
+    if (r) cachedSearch = true;
     else {
       r = await c.resolveSeeds(seeds);
       if (cache && r.resolved.length) await cache.cacheSet(seedKey, r, CACHE_TTL);
     }
-    calls.push(...r.calls);
+    // a cached answer replays the parameters of the calls, never their timings or statuses: those calls were not made this run
+    calls.push(...r.calls.map((x) => (cachedSearch ? { name: `${x.name} (from the day cache)`, url: x.url, params: x.params } : x)));
     resolved = r.resolved;
     unresolved = r.unresolved;
     if (resolved.length === 0) return;
@@ -112,12 +120,14 @@ export async function recover(input: RecoverInput, client: QlooClient, deps: { i
     const excludeEntityIds = deps.entityMap ? (input.excludeIsbns ?? []).map((i) => deps.entityMap!.get(i)).filter((x): x is string => Boolean(x)) : [];
     const recKey = `qloo:insights:v1:${resolved.map((s) => s.entityId).sort().join(",")}|x:${excludeEntityIds.sort().join(",")}|held:${heldEntityIds?.length ?? 0}`;
     let rec = cache ? await cache.cacheGet<Awaited<ReturnType<QlooClient["recommendBooks"]>>>(recKey) : null;
-    if (rec) calls.push({ name: "cache", url: "cache://insights", params: { held: String(heldEntityIds?.length ?? 0), books: String(rec.books.length) } });
+    let cachedRec = false;
+    if (rec) cachedRec = true;
     else {
       rec = await c.recommendBooks(resolved.map((s) => s.entityId!), { heldEntityIds, excludeEntityIds, take: 50 });
       if (cache && rec.books.length) await cache.cacheSet(recKey, rec, CACHE_TTL);
     }
-    calls.push(...rec.calls);
+    calls.push(...rec.calls.map((x) => (cachedRec ? { name: `${x.name} (from the day cache)`, url: x.url, params: x.params } : x)));
+    if (cachedSearch || cachedRec) cacheNote = cachedSearch && cachedRec ? "Served from the day cache: these are the calls made the first time this shelf was built; none reached Qloo for this run." : "Part of this run came from the day cache; the calls marked so were not repeated.";
     books = rec.books;
     holdingsChunks = rec.holdingsChunks;
     explainAvailable = rec.explainAvailable;
@@ -132,6 +142,7 @@ export async function recover(input: RecoverInput, client: QlooClient, deps: { i
     calls.push({ name: "qloo-error", url: "qloo", params: {}, status, ms: 0 });
     mode = "sample";
     modeNote = status === 401 || status === 403 ? "Sample mode: Qloo key pending (the API answered " + status + ")." : `Sample mode: Qloo did not answer${status ? ` (${status})` : ""}. These three are a deterministic stand-in, not ranked by taste.`;
+    failNote = `Qloo answered ${status ?? "with an error"} on the call marked above; the three books below are the sample stand-in, not a taste ranking.`;
     active = fallback;
     resolved = [];
     unresolved = [];
@@ -146,7 +157,12 @@ export async function recover(input: RecoverInput, client: QlooClient, deps: { i
   const exclude = new Set(input.excludeIsbns ?? []);
   const count = Math.max(1, Math.min(10, input.count ?? RECOVER_COUNT));
   const byEntity = deps.entityMap ? new Map([...deps.entityMap].map(([isbn13, entityId]) => [entityId, isbn13])) : undefined; // entity id -> ISBN for the gate
-  const gated = gateToHoldings(books, items, byEntity).filter((g) => !exclude.has(g.item.isbn13) && !avoided(g.item, input.avoid ?? [])).slice(0, count);
+  // the desk serves adults: juvenile, picture, board and comic titles stay off the shelf unless the patron named a children's book
+  const juvenile = (item: CollectionItem) => item.subjects.some((s) => /juvenile|picture book|board book|comic|graphic novel|young adult|manga/i.test(s));
+  const childSeed = seeds.some((s) => s.kind === "book" && items.some((i) => juvenile(i) && normalizeTitle(i.title) === normalizeTitle(s.name)));
+  const gated = gateToHoldings(books, items, byEntity)
+    .filter((g) => !exclude.has(g.item.isbn13) && !avoided(g.item, input.avoid ?? []) && (childSeed || !juvenile(g.item)))
+    .slice(0, count);
   const out: RecoveredBook[] = gated.map(({ book, item }) => {
     const r = reasonLine(resolved, book, explainAvailable);
     return {
@@ -170,6 +186,6 @@ export async function recover(input: RecoverInput, client: QlooClient, deps: { i
     seeds: resolved,
     unresolved,
     books: out,
-    request: { provider: mode, calls, holdingsChunks, responseExcerpt: excerpt, note: deps.entityMap ? undefined : "holdings gate applied by title and author (the Qloo entity map is built when the key arrives)" },
+    request: { provider: mode, calls, holdingsChunks, responseExcerpt: excerpt, note: failNote ?? cacheNote ?? (deps.entityMap ? undefined : "holdings gate applied by title and author (no Qloo entity map for this collection yet)") },
   };
 }

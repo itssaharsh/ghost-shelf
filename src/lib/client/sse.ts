@@ -14,6 +14,7 @@ export function openCheckStream(q: { title: string; author: string }, onEvent: (
   };
   es.addEventListener("start", handle);
   es.addEventListener("source", handle);
+  es.addEventListener("registry", handle);
   es.addEventListener("verdict", (ev) => {
     handle(ev as MessageEvent);
     es.close();

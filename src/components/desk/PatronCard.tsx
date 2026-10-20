@@ -2,7 +2,7 @@
 import type { SourceName, Verdict } from "@/lib/schemas";
 import { SOURCE_LABEL } from "@/lib/schemas";
 
-export function PatronCard({ phase, verdict, error, title, author, sources }: { phase: "idle" | "checking" | "checked"; verdict: Verdict | null; error: string | null; title: string; author: string; sources: SourceName[] }) {
+export function PatronCard({ phase, verdict, error, title, author, sources, prior }: { phase: "idle" | "checking" | "checked"; verdict: Verdict | null; error: string | null; title: string; author: string; sources: SourceName[]; prior?: { count: number; firstSeen: string; example: boolean } | null }) {
   const label = (s: SourceName) => (s === "catalog" ? "our catalog" : SOURCE_LABEL[s]);
   if (phase === "checking" && !verdict) {
     return (
@@ -80,6 +80,13 @@ export function PatronCard({ phase, verdict, error, title, author, sources }: { 
       <p className="m-0 text-[20px] leading-[1.45]">We checked: {checkedNames.join(", ")}.</p>
       {failedNames.length > 0 && <p className="m-0 text-[20px] leading-[1.45] text-ink-muted">{failedNames.join(" and ")} did not answer.</p>}
       {verdict.titleOnlyBy && <p className="m-0 text-[20px] leading-[1.45]">A book with this title exists by {verdict.titleOnlyBy}, not by this author.</p>}
+      {prior && (
+        <p className="m-0 text-[17px] leading-[1.45]">
+          {prior.example ? "One of the ten titles a newspaper insert printed in May 2025. " : ""}
+          {prior.count === 1 ? "Asked for once at this desk before" : `Asked for ${prior.count} times at this desk`}
+          {prior.example ? "." : `; first logged ${new Date(prior.firstSeen).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}.`}
+        </p>
+      )}
       <p className="m-0 text-[20px] leading-[1.45] text-ink-muted">Recent and small-press titles may be missing.</p>
       <PrintSlip />
     </article>

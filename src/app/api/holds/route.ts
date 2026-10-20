@@ -18,6 +18,6 @@ export async function POST(request: Request) {
   if (isbns.length === 0) return Response.json({ error: "Nothing to reserve" }, { status: 400 });
   const title = typeof body.title === "string" ? body.title.slice(0, 200) : "";
   const author = typeof body.author === "string" ? body.author.slice(0, 200) : "";
-  const { created, hold } = await getRepo().placeHold({ runId, isbn13s: isbns, title, author });
-  return Response.json({ written: hold.isbn13s.length, created, runId: hold.runId, isbns: hold.isbn13s, storage: getRepo().mode });
+  const { created, replaced, hold } = await getRepo().placeHold({ runId, isbn13s: isbns, title, author });
+  return Response.json({ written: hold.isbn13s.length, created, replaced, runId: hold.runId, isbns: hold.isbn13s, storage: getRepo().mode });
 }

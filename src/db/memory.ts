@@ -34,10 +34,17 @@ export class MemoryRepo implements Repo {
 
   async placeHold(input: { runId: string; isbn13s: string[]; title: string; author: string }) {
     const existing = this.holds.get(input.runId);
-    if (existing) return { created: false, hold: existing };
-    const hold: Hold = { runId: input.runId, isbn13s: [...new Set(input.isbn13s)], title: input.title, author: input.author, createdAt: this.now().toISOString() };
+    const wanted = [...new Set(input.isbn13s)];
+    if (existing) {
+      const same = existing.isbn13s.length === wanted.length && existing.isbn13s.every((i) => wanted.includes(i));
+      if (same) return { created: false, replaced: false, hold: existing };
+      const hold: Hold = { ...existing, isbn13s: wanted, title: input.title, author: input.author };
+      this.holds.set(input.runId, hold);
+      return { created: false, replaced: true, hold }; // the patron changed their mind within the run: one hold per run, the newest set
+    }
+    const hold: Hold = { runId: input.runId, isbn13s: wanted, title: input.title, author: input.author, createdAt: this.now().toISOString() };
     this.holds.set(input.runId, hold);
-    return { created: true, hold };
+    return { created: true, replaced: false, hold };
   }
 
   async logInvented(input: LogInput) {
@@ -52,6 +59,10 @@ export class MemoryRepo implements Repo {
     }
     this.rows.set(key, row);
     return { row, created: !prev, total: this.rows.size };
+  }
+
+  async findRegistry(title: string, author: string): Promise<RegistryRow | null> {
+    return this.rows.get(registryKey(title, author)) ?? null;
   }
 
   async registry(): Promise<RegistryRow[]> {

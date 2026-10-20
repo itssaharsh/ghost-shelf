@@ -6,7 +6,9 @@ export function RequestPanel({ request, mode, onClose, onCopied }: { request?: R
   const ref = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   useEffect(() => {
-    ref.current?.focus();
+    ref.current?.focus(); // once, when the panel opens; never again while the desk re-renders behind it
+  }, []);
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);

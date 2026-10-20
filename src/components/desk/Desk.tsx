@@ -43,6 +43,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
   const [runId, setRunId] = useState<string | null>(null);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [checkError, setCheckError] = useState<string | null>(null);
+  const [prior, setPrior] = useState<{ count: number; firstSeen: string; example: boolean } | null>(null); // what the registry already knows about this title
   const [emptyTitle, setEmptyTitle] = useState(false);
   const [shelf, setShelf] = useState<ShelfState>({ status: "idle" });
   const [holds, setHolds] = useState<HoldsState>({ state: "idle" });
@@ -60,12 +61,16 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
   const checkedRun = useRef<{ title: string; author: string } | null>(null);
   const [checked, setChecked] = useState<{ title: string; author: string } | null>(null); // the same value, for rendering
   const runSeq = useRef(0); // a late /api/recover answer from an earlier run must not land on the current shelf
+  const recoverSeq = useRef(0); // and within a run, only the newest recovery (seed edits) may fill the shelf
 
   // Every announcement is also a line in the run log (the agent's steps, timed from the first).
+  const closePanel = useCallback(() => setPanelOpen(false), []);
   const announce = useCallback((s: string) => {
     setStatus(s);
     setRunLog((l) => [...l, { at: Date.now(), text: s }]);
   }, []);
+
+  const onCopied = useCallback(() => announce("Copied as curl"), [announce]);
 
   const applySnapshot = useCallback((s: Snapshot) => {
     setTitle(s.title);
@@ -82,6 +87,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
     setPanelOpen(s.panelOpen);
     setEmptyTitle(s.emptyTitle);
     setCheckError(s.checkError);
+    setPrior(s.title === "The Last Algorithm" && s.verdict?.kind === "no_record" ? { count: 4, firstSeen: "2026-10-19T00:00:00.000Z", example: true } : null);
     checkedRun.current = s.title ? { title: s.title, author: s.author } : null;
     setChecked(checkedRun.current);
     runSeq.current += 1;
@@ -90,8 +96,10 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
 
   const recover = useCallback(
     async (id: string, seedList: Seed[], excludeIsbns: string[] = [], seq: number = runSeq.current) => {
+      const mine = ++recoverSeq.current;
+      setHolds({ state: "idle" }); // whatever lands next is a new shelf; the earlier reservation does not carry over
       if (seedList.length === 0) {
-        setShelf({ status: "ready", result: { runId: id, mode: qlooConfigured ? "qloo" : "sample", modeNote: "", seeds: [], unresolved: [], books: [] } });
+        setShelf({ status: "ready", result: { runId: id, mode: qlooConfigured ? "qloo" : "sample", modeNote: "", seeds: [], unresolved: [], books: [], request: { provider: qlooConfigured ? "qloo" : "sample", calls: [], note: "No seeds named for this run, so nothing was sent to Qloo." } } });
         return;
       }
       setShelf({ status: "loading" });
@@ -99,11 +107,11 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
         const res = await fetch("/api/recover", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ runId: id, seeds: seedList, excludeIsbns }) });
         if (!res.ok) throw new Error("Couldn't reach the taste graph.");
         const json = (await res.json()) as RecoverResult;
-        if (seq !== runSeq.current) return; // a newer run owns the shelf now
+        if (seq !== runSeq.current || mine !== recoverSeq.current) return; // a newer run or a newer seed edit owns the shelf now
         setShelf({ status: "ready", result: json });
         announce(json.mode === "qloo" ? `Qloo: ${json.seeds.length} seed${json.seeds.length === 1 ? "" : "s"} resolved, ${json.books.length} held books on the shelf` : `Sample mode: ${json.books.length} held books on the shelf (not ranked by taste)`);
       } catch (err) {
-        if (seq !== runSeq.current) return;
+        if (seq !== runSeq.current || mine !== recoverSeq.current) return;
         setShelf({ status: "error", error: err instanceof Error ? err.message : "Couldn't reach the taste graph." });
       }
     },
@@ -127,6 +135,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
       setDrawers(freshDrawers(sources, "closed"));
       setPhase("checking");
       setVerdict(null);
+      setPrior(null);
       setCheckError(null);
       setShelf({ status: "idle" });
       setHolds({ state: "idle" });
@@ -158,6 +167,10 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
           (e: CheckEvent) => {
             lastEvent = Date.now();
             if (e.type === "start") setRunId(e.runId);
+            if (e.type === "registry") {
+              setPrior({ count: e.count, firstSeen: e.firstSeen, example: e.example });
+              announce(e.example ? `One of the ten newspaper titles; asked for ${e.count} times here` : `Asked for ${e.count} times at this desk before`);
+            }
             if (e.type === "source") {
               setDrawers((d) => ({ ...d, [e.source]: { source: e.source, status: "done", result: e } }));
               announce(`${SOURCE_LABEL[e.source]}: ${e.result === "found" ? "found" : e.result === "no_record" ? "no record" : "did not answer"}, ${(e.ms / 1000).toFixed(2)} seconds`);
@@ -293,8 +306,9 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
       const checked = checkedRun.current ?? { title, author }; // the run that was checked, not whatever is in the fields now
       const res = await fetch("/api/holds", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ runId, isbns: reservable, title: checked.title, author: checked.author }) });
       if (!res.ok) throw new Error("hold failed");
-      const j = (await res.json()) as { written: number };
+      const j = (await res.json()) as { written: number; replaced?: boolean };
       done(j.written);
+      if (j.replaced) announce("This run's earlier hold was replaced by the new three");
     } catch {
       setHolds({ state: "error", message: "Couldn't reserve them. Nothing was reserved." });
       announce("Couldn't reserve them. Nothing was reserved.");
@@ -340,7 +354,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
   const canReserve = reservable.length > 0 && holds.state !== "busy";
   const reserveLabel =
     holds.state === "busy" ? "Reserving…" : holds.state === "done" ? `✓ ${holds.message}` : heldItem ? "Reserve this book" : `Reserve ${reservable.length ? `these ${reservable.length}` : "these"} ${reservable.length === 1 ? "book" : "books"}`;
-  const logLabel = log.state === "busy" ? "Logging…" : log.state === "done" ? log.message : log.state === "again" ? "Log again" : "Log this invented title";
+  const logLabel = log.state === "busy" ? "Logging…" : log.state === "done" ? log.message : log.state === "again" ? "Press again to count it twice" : "Log this invented title";
   const logLabelShort = log.state === "busy" ? "Logging…" : log.state === "done" ? "Logged" : log.state === "again" ? "Log again" : "Log";
   const modeNote = shelf.result?.modeNote ?? "";
   const presetLabel = useMemo(() => Object.fromEntries(presets.map((p) => [p.id, `${p.title} · ${p.author}`])), [presets]);
@@ -446,7 +460,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
             </div>
 
             <div key={verdict ? `card-${runKey}` : `wait-${runKey}`} className={verdict ? "card-rise" : undefined}>
-              <PatronCard phase={phase} verdict={verdict} error={checkError} title={title} author={author} sources={sources} />
+              <PatronCard phase={phase} verdict={verdict} error={checkError} title={title} author={author} sources={sources} prior={prior} />
             </div>
 
             {verdict && (verdict.kind === "no_record" || verdict.kind === "unchecked") && <SeedsRow seeds={seeds} onChange={onSeedsChange} unresolved={shelf.result?.unresolved ?? []} />}
@@ -456,7 +470,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
           {/* RIGHT: the shelf */}
           <section className="lg:col-span-5 flex flex-col gap-3" aria-label="Held books">
             <div key={`shelf-${runKey}`} className="fade-through">
-              <Shelf phase={phase} verdict={verdict} shelf={shelf} heldItem={heldItem} heldCoverUrl={verdict?.heldCoverUrl} seeds={seeds} held={holdsPlaced} onRetry={() => runId && recover(runId, seeds)} />
+              <Shelf phase={phase} verdict={verdict} shelf={shelf} heldItem={heldItem} heldCoverUrl={verdict?.heldCoverUrl} seeds={seeds} held={holdsPlaced} onRetry={() => !fixture && runId && recover(runId, seeds)} />
             </div>
             <p className="text-[13px] text-ink-muted leading-[1.45]">
               Demo collection: about {collectionSize.toLocaleString("en-US")} most-borrowed 2025 titles at Seattle Public Library (public domain).{" "}
@@ -493,7 +507,7 @@ export function Desk({ presets, sources, collectionSize, qlooConfigured, storage
         </div>
       </div>
 
-      {panelOpen && <RequestPanel request={shelf.result?.request} mode={shelf.result?.mode} onClose={() => setPanelOpen(false)} onCopied={() => announce("Copied as curl")} />}
+      {panelOpen && <RequestPanel request={shelf.result?.request} mode={shelf.result?.mode} onClose={closePanel} onCopied={onCopied} />}
 
       {/* Phone: sticky actions */}
       <div className="no-print lg:hidden fixed inset-x-0 bottom-0 z-10 bg-canvas border-t border-line px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] flex gap-3 items-center">

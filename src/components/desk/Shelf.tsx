@@ -9,7 +9,9 @@ const SPINE = ["bg-data-1", "bg-data-2", "bg-data-3"];
 const COVER_W = "w-[80px] min-[400px]:w-[96px] lg:w-[120px]";
 
 export function Shelf({ phase, verdict, shelf, heldItem, heldCoverUrl, seeds, held, onRetry }: { phase: "idle" | "checking" | "checked"; verdict: Verdict | null; shelf: ShelfState; heldItem?: CollectionItem; heldCoverUrl?: string | null; seeds: Seed[]; held: boolean; onRetry: () => void }) {
-  const heading = heldItem ? "The book they asked for" : verdict?.kind === "not_held" ? "Nothing to recover: the book is real" : "Three held books they'd take instead";
+  const named = seeds.map((s) => s.name);
+  const fromSeeds = named.length === 0 ? "" : named.length === 1 ? ` from ${named[0]}` : named.length === 2 ? ` from ${named[0]} and ${named[1]}` : ` from ${named.slice(0, -1).join(", ")} and ${named[named.length - 1]}`;
+  const heading = heldItem ? "The book they asked for" : verdict?.kind === "not_held" ? "Nothing to recover: the book is real" : `Three held books${fromSeeds}`;
   return (
     <div className="flex flex-col gap-3">
       <h2 className="m-0 font-sans font-semibold text-[17px]">{heading}</h2>

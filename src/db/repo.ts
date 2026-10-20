@@ -46,11 +46,13 @@ export interface Repo {
   getRun(id: string): Promise<StoredRun | null>;
   /** the newest stored provider request (redacted at write time), optionally for one run */
   lastRequest(runId?: string): Promise<{ runId: string; request: RedactedRequest; createdAt: string } | null>;
-  /** idempotent per run id: a second call returns the first hold and created=false */
-  placeHold(input: { runId: string; isbn13s: string[]; title: string; author: string }): Promise<{ created: boolean; hold: Hold }>;
+  /** idempotent per run id: the same set again returns the first hold (created=false); a different set replaces it (replaced=true) */
+  placeHold(input: { runId: string; isbn13s: string[]; title: string; author: string }): Promise<{ created: boolean; replaced: boolean; hold: Hold }>;
   /** insert, or increment the count of the same title+author */
   logInvented(input: LogInput): Promise<{ row: RegistryRow; created: boolean; total: number }>;
   registry(): Promise<RegistryRow[]>;
+  /** the registry row for this title and author, if a desk has logged it */
+  findRegistry(title: string, author: string): Promise<RegistryRow | null>;
   registryCount(): Promise<number>;
   /** inserts the documented examples once; existing keys are left alone */
   seedExamples(rows: ExampleRow[]): Promise<number>;

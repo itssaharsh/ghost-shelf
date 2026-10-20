@@ -17,11 +17,20 @@ export async function GET(request: Request) {
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      const send = (e: CheckEvent) => controller.enqueue(encoder.encode(`event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`));
+      const emit = (e: CheckEvent) => controller.enqueue(encoder.encode(`event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`));
+      let held: CheckEvent | null = null;
+      const send = (e: CheckEvent) => (e.type === "verdict" ? void (held = e) : emit(e)); // the verdict waits for the registry line
       try {
         const runId = crypto.randomUUID();
         const verdict = await runCheck({ title, author }, send, undefined, runId);
-        await getRepo().upsertRun({ id: runId, title, author, verdictKind: verdict.kind, checked: verdict.checked, failed: verdict.failed });
+        const repo = getRepo();
+        if (verdict.kind === "no_record" || verdict.kind === "unchecked") {
+          // the registry answers the desk too: a title other desks have logged is recognised on the card
+          const row = await repo.findRegistry(title, author).catch(() => null);
+          if (row) emit({ type: "registry", runId, count: row.count, firstSeen: row.firstSeen, example: row.example });
+        }
+        if (held) emit(held);
+        await repo.upsertRun({ id: runId, title, author, verdictKind: verdict.kind, checked: verdict.checked, failed: verdict.failed });
       } catch (err) {
         console.error("check failed", { title, error: err instanceof Error ? err.message : String(err) }); // server side only; the browser gets a fixed line
         controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({ message: "The checks could not run. Try again in a moment." })}\n\n`));

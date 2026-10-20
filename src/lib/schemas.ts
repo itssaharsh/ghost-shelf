@@ -53,7 +53,8 @@ export type CheckQuery = { title: string; author?: string };
 export type CheckEvent =
   | { type: "start"; runId: string; title: string; author: string }
   | ({ type: "source" } & SourceResult)
-  | { type: "verdict"; runId: string; verdict: Verdict };
+  | { type: "verdict"; runId: string; verdict: Verdict }
+  | { type: "registry"; runId: string; count: number; firstSeen: string; example: boolean };
 
 export type Seed = { name: string; kind: "film" | "band" | "artist" | "author" | "book" | "tv" | "other"; entityId?: string; /** the taste graph's own name for it, when it differs from what the patron said */ canonical?: string };
 

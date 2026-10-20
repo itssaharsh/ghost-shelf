@@ -143,7 +143,7 @@ export class LiveQloo implements QlooClient {
     const chunks = opts.heldEntityIds?.length ? chunkIds(opts.heldEntityIds) : [undefined];
     const seen = new Map<string, QlooBook>();
     let excerpt: unknown;
-    // the holdings gate is ~20 chunks of 150 ids; four in flight keeps a 3,000-title collection under the 3 s target
+    // the holdings gate is a few chunks of 200 ids; four in flight keeps a 3,000-title collection under the 3 s target
     const answers = await mapLimit(chunks, 4, (chunk) => this.get<InsightsResponse>(insightsUrl(this.base, seedEntityIds, chunk, opts.excludeEntityIds, 50), calls, "insights"));
     for (const json of answers) {
       const entities = json.results?.entities ?? [];

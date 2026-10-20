@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { draftEmail, parseLiked, parseList } from "../src/lib/lists";
+import { parseLiked, parseList } from "../src/lib/lists";
+import { draftEmail } from "../src/lib/lists-draft";
 import { POST as lists } from "../src/app/api/lists/route";
 
 const post = (body: unknown) => lists(new Request("http://x/api/lists", { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": "203.0.113.21" }, body: JSON.stringify(body) }));
