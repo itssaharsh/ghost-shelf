@@ -18,11 +18,11 @@ test("search and insights URLs carry the parameters and never the key", () => {
   assert.doesNotMatch(i, /key/i);
 });
 
-test("held entity ids are chunked into groups of 150", () => {
-  const ids = Array.from({ length: 320 }, (_, k) => `id${k}`);
+test("held entity ids are chunked into groups of 200 (about 8 KB of URL)", () => {
+  const ids = Array.from({ length: 420 }, (_, k) => `id${k}`);
   const chunks = chunkIds(ids);
   assert.equal(chunks.length, 3);
-  assert.equal(chunks[0].length, 150);
+  assert.equal(chunks[0].length, 200);
   assert.equal(chunks[2].length, 20);
 });
 
@@ -49,7 +49,7 @@ test("the live client sends the key as a header, records redacted calls, and thr
   assert.equal(seen[0].headers["X-Api-Key"], "secret-key");
   assert.ok(!r.calls[0].url.includes("secret"));
   assert.ok(!JSON.stringify(r.calls).includes("secret-key"));
-  const rec = await client.recommendBooks(["e-martian"], { take: 50, heldEntityIds: Array.from({ length: 151 }, (_, k) => `h${k}`) });
+  const rec = await client.recommendBooks(["e-martian"], { take: 50, heldEntityIds: Array.from({ length: 201 }, (_, k) => `h${k}`) });
   assert.equal(rec.holdingsChunks, 2);
   assert.equal(rec.books[0].name, "Book One");
 
