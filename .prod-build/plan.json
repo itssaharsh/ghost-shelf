@@ -434,8 +434,10 @@
         "observe: one live run on the deployed URL in Qloo mode with the request panel showing explainability (or the degraded reason line, recorded)"
       ],
       "rollback": "unset the key; sample mode returns",
-      "status": "todo",
-      "notes": "blocked on the key (A-1); if it never arrives, skip with the reason and the README says sample mode"
+      "status": "doing",
+      "notes": "blocked on the key (A-1); if it never arrives, skip with the reason and the README says sample mode",
+      "base": "49873c0",
+      "started_after": 93
     },
     {
       "id": "T12",
@@ -538,8 +540,10 @@
         "python3 .prod-build/pb.py rules check"
       ],
       "rollback": "n/a",
-      "status": "todo",
-      "notes": "--live and --description passed at submit time"
+      "status": "doing",
+      "notes": "--live and --description passed at submit time",
+      "base": "49873c0",
+      "started_after": 87
     }
   ],
   "base": "503c828"
