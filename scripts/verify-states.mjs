@@ -76,7 +76,8 @@ for (const [state, sizeName] of runs) {
   page.on("console", (m) => m.type() === "error" && !/Failed to load resource/.test(m.text()) && errors.push(`console: ${m.text()}`)); // resource failures are reported by URL below
   const allowed = (u) => ALLOW.some((a) => new URL(u).pathname === a);
   page.on("response", (r) => r.status() >= 400 && !allowed(r.url()) && errors.push(`http ${r.status()}: ${r.url()}`));
-  page.on("requestfailed", (r) => !allowed(r.url()) && errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText ?? ""}`));
+  // the desk closes the check stream itself after the verdict, which Chromium reports as an aborted request: not an error
+  page.on("requestfailed", (r) => !allowed(r.url()) && !(/\/api\/check\?/.test(r.url()) && r.failure()?.errorText === "net::ERR_ABORTED") && errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText ?? ""}`));
   const url = `${base}/${state ? `?state=${state}` : ""}`;
   const t0 = Date.now();
   await page.goto(url, { waitUntil: "load" });
