@@ -32,7 +32,7 @@ Recovery is the step only Qloo can do here, and it runs on the server (`src/lib/
 
 1. **Search** resolves each thing the patron named to a Qloo entity: `GET /search` with `query` and `types` chosen from the seed's kind (`urn:entity:movie`, `urn:entity:artist`, `urn:entity:person`, `urn:entity:book`, `urn:entity:tv_show`). The patron's own words stay on screen; Qloo's canonical name is kept beside them.
 2. **Insights** asks for books that fit all of them at once: `GET /v2/insights` with `filter.type=urn:entity:book`, `signal.interests.entities` = the resolved seeds, `filter.results.entities` = the Qloo entity ids of the demo collection (sent in chunks of 150, so the answer can only contain books the library holds), `filter.exclude.entities` for what the patron already has or rejected, `feature.explainability=true` and `take=50`.
-3. **The holdings map** (ISBN to Qloo entity id for the collection) is built once the key is active, by `scripts/build-map.ts` (`npm run map:build`), and kept in the database; until it exists the gate matches Qloo's books to the collection by title and author. The map is never committed: the repository holds no Qloo response data.
+3. **The holdings map** (ISBN to Qloo entity id for the collection) was built once with the key by `scripts/build-map.ts` (`npm run map:build`): 1,165 of the 3,000 held titles resolved to a Qloo book entity (exact edition or same title within two years), 849 of them fiction. It lives in the database and is sent as `filter.results.entities` in chunks of 150, so Qloo ranks only held books; titles without an entity cannot be recommended. The map is never committed: the repository holds no Qloo response data.
 4. **Reasons.** When explainability comes back, each book's reason line names the seeds with their share ("because you named The Martian 61%, Radiohead 39%"); otherwise it names the seeds without shares. The affinity is shown as "match 0.74, from Qloo".
 5. **Sample mode.** When `QLOO_API_KEY` is absent, or a Qloo call fails (401, a 429 that a single retry does not clear, a timeout), the checks and the card still run live and the shelf shows three held books picked by a deterministic non-taste rule, labelled "Sample mode" on screen and in the request panel. The hackathon key is issued by hand, so the product stays complete while it is pending.
 
@@ -87,7 +87,7 @@ No Qloo response data is stored in this repository: `data/` holds the collection
 |---|---|
 | The three checks | Live, at check time, with links and timings |
 | The patron card | Live, from the checks |
-| Recovery | Live through Qloo with the key; sample mode without it, labelled |
+| Recovery | Live through Qloo (Search, Insights with the holdings filter, explainability); sample mode only when Qloo does not answer, labelled |
 | Covers | Live from Open Library by cover id, through this site |
 | Reserve | Simulated: a demo holds table, not a library system |
 | The registry | This demo's own table, seeded with the ten documented example titles |
@@ -96,7 +96,7 @@ No Qloo response data is stored in this repository: `data/` holds the collection
 
 ## Limits
 
-Recent and small-press titles may be missing from the sources checked, so the card never says a book does not exist. The collection is a demo slice of one library's data. Holds and the registry are this demo's own. Until the Qloo key is active, the shelf runs in sample mode and says so.
+Recent and small-press titles may be missing from the sources checked, so the card never says a book does not exist. The collection is a demo slice of one library's data. Holds and the registry are this demo's own. When Qloo does not answer, the shelf runs in sample mode for that run and says so.
 
 ## Timeline and tools
 

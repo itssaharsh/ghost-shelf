@@ -9,7 +9,7 @@ const REPO = "https://github.com/itssaharsh/ghost-shelf";
 const LIVE_VS_SIMULATED: [string, string][] = [
   ["The three checks", "Live. The demo collection is a real table; Open Library and the Internet Archive (or Google Books with a key) are queried at check time, with the source's own link and the elapsed time on each drawer."],
   ["The patron card", "Live, from the checks. It never says a book does not exist: it says in how many sources there is no record, and keeps the caveat."],
-  ["Recovery (the three held books)", "Live through Qloo's Search and Insights calls when the hackathon key is set. Without it, sample mode: a deterministic pick from the collection, labelled on screen, not ranked by taste."],
+  ["Recovery (the three held books)", "Live through Qloo's Search and Insights calls, filtered to the collection's own Qloo entity ids, with explainability giving each reason. Only when Qloo does not answer (or no key is set) does the shelf fall back to sample mode: a deterministic pick from the collection, labelled on screen, not ranked by taste."],
   ["Covers", "Live from Open Library by cover id, resolved once for the collection and served through this site; never fetched by ISBN at request time."],
   ["Reserve", "Simulated: holds go to this demo's own holds table, labelled 'demo holds list', not to a library system."],
   ["The registry of invented titles", "This demo's own table. It ships with the ten titles printed in the newspaper insert, marked example; what you log joins them."],
