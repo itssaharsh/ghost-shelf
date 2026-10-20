@@ -71,7 +71,10 @@ export type RecoverInput = {
   avoid?: string[];
 };
 
-export async function recover(input: RecoverInput, client: QlooClient, deps: { items?: CollectionItem[]; entityMap?: Map<string, string>; fallback?: QlooClient } = {}): Promise<RecoverResult> {
+export type RecoverCache = { cacheGet<T>(key: string): Promise<T | null>; cacheSet(key: string, value: unknown, ttlSeconds?: number): Promise<void> };
+const CACHE_TTL = 24 * 3600; // a day: the same seeds give the same shelf, and the hackathon key is rate-limited per minute
+
+export async function recover(input: RecoverInput, client: QlooClient, deps: { items?: CollectionItem[]; entityMap?: Map<string, string>; fallback?: QlooClient; cache?: RecoverCache } = {}): Promise<RecoverResult> {
   const items = deps.items ?? collection.all();
   const seeds = input.seeds.filter((s) => s.name && s.name.trim()).slice(0, 5);
   const calls: RedactedRequest["calls"] = [];
@@ -91,7 +94,15 @@ export async function recover(input: RecoverInput, client: QlooClient, deps: { i
   let excerpt: unknown;
 
   const run = async (c: QlooClient) => {
-    const r = await c.resolveSeeds(seeds);
+    // Qloo answers are cached for a day (database only, never the repository): a repeated preset costs no calls
+    const cache = c.mode === "qloo" ? deps.cache : undefined;
+    const seedKey = `qloo:search:v1:${seeds.map((s) => `${s.kind}:${s.name.trim().toLowerCase()}`).join("|")}`;
+    let r = cache ? await cache.cacheGet<Awaited<ReturnType<QlooClient["resolveSeeds"]>>>(seedKey) : null;
+    if (r) calls.push({ name: "cache", url: "cache://search", params: { seeds: String(seeds.length) } });
+    else {
+      r = await c.resolveSeeds(seeds);
+      if (cache && r.resolved.length) await cache.cacheSet(seedKey, r, CACHE_TTL);
+    }
     calls.push(...r.calls);
     resolved = r.resolved;
     unresolved = r.unresolved;
@@ -99,7 +110,13 @@ export async function recover(input: RecoverInput, client: QlooClient, deps: { i
     // the map is ISBN -> Qloo entity id; Qloo wants the entity ids (the holdings gate), and excluded ISBNs become excluded entities
     const heldEntityIds = deps.entityMap ? [...deps.entityMap.values()] : undefined;
     const excludeEntityIds = deps.entityMap ? (input.excludeIsbns ?? []).map((i) => deps.entityMap!.get(i)).filter((x): x is string => Boolean(x)) : [];
-    const rec = await c.recommendBooks(resolved.map((s) => s.entityId!), { heldEntityIds, excludeEntityIds, take: 50 });
+    const recKey = `qloo:insights:v1:${resolved.map((s) => s.entityId).sort().join(",")}|x:${excludeEntityIds.sort().join(",")}|held:${heldEntityIds?.length ?? 0}`;
+    let rec = cache ? await cache.cacheGet<Awaited<ReturnType<QlooClient["recommendBooks"]>>>(recKey) : null;
+    if (rec) calls.push({ name: "cache", url: "cache://insights", params: { held: String(heldEntityIds?.length ?? 0), books: String(rec.books.length) } });
+    else {
+      rec = await c.recommendBooks(resolved.map((s) => s.entityId!), { heldEntityIds, excludeEntityIds, take: 50 });
+      if (cache && rec.books.length) await cache.cacheSet(recKey, rec, CACHE_TTL);
+    }
     calls.push(...rec.calls);
     books = rec.books;
     holdingsChunks = rec.holdingsChunks;

@@ -1,4 +1,5 @@
 // Reading list: the form -> seeds, excludes and avoid words -> five to ten held titles with reasons. Nothing is sent anywhere.
+import { getRepo } from "@/db";
 import { makeQlooClient } from "@/lib/qloo";
 import { dislikedToExcludes, parseLiked, parseList, type ListRequest } from "@/lib/lists";
 import { clientKey, limiterFor } from "@/lib/ratelimit";
@@ -19,6 +20,8 @@ export async function POST(request: Request) {
   const avoid = parseList(String(body.avoid ?? "").slice(0, 300));
   const count = Math.max(5, Math.min(10, Number(body.count) || 8));
   const runId = `list-${crypto.randomUUID()}`;
-  const result = await recover({ runId, seeds, excludeIsbns: dislikedToExcludes(disliked), avoid, count }, makeQlooClient());
+  const repo = getRepo();
+  const entityMap = await repo.entityMap();
+  const result = await recover({ runId, seeds, excludeIsbns: dislikedToExcludes(disliked), avoid, count }, makeQlooClient(), { ...(entityMap.size ? { entityMap } : {}), cache: repo });
   return Response.json({ ...result, requested: { liked, disliked, avoid, format: String(body.format ?? "print").slice(0, 40), count } });
 }

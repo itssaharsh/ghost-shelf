@@ -97,7 +97,7 @@ function liveShapeRequest(seeds: Seed[]): RedactedRequest {
       {
         name: "insights",
         url: "https://hackathon.api.qloo.com/v2/insights",
-        params: { "filter.type": "urn:entity:book", "signal.interests.entities": `<${seeds.length} resolved entity ids>`, "filter.results.entities": "<up to 150 held entity ids per chunk>", "feature.explainability": "true", take: "50" },
+        params: { "filter.type": "urn:entity:book", "signal.interests.entities": `<${seeds.length} resolved entity ids>`, "filter.results.entities": "<up to 200 held entity ids per chunk>", "feature.explainability": "true", take: "50" },
       },
     ],
     holdingsChunks: 0,

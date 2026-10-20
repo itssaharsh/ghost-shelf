@@ -42,7 +42,7 @@ export class QlooError extends Error {
 }
 
 export const QLOO_BASE = "https://hackathon.api.qloo.com";
-export const HOLDINGS_CHUNK = 150;
+export const HOLDINGS_CHUNK = 200; // about 8 KB of ids per URL; 300 ids answers 414 Request-URI Too Large
 
 export const KIND_TO_TYPE: Record<Seed["kind"], string | undefined> = {
   film: "urn:entity:movie",
