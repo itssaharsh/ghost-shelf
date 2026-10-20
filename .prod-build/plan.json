@@ -434,10 +434,15 @@
         "observe: one live run on the deployed URL in Qloo mode with the request panel showing explainability (or the degraded reason line, recorded)"
       ],
       "rollback": "unset the key; sample mode returns",
-      "status": "doing",
+      "status": "done",
       "notes": "blocked on the key (A-1); if it never arrives, skip with the reason and the README says sample mode",
       "base": "49873c0",
-      "started_after": 93
+      "started_after": 93,
+      "evidence": [
+        "E0096",
+        "E0097",
+        "E0098"
+      ]
     },
     {
       "id": "T12",
