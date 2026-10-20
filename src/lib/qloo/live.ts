@@ -105,7 +105,13 @@ export class LiveQloo implements QlooClient {
     const t0 = performance.now();
     const u = new URL(url);
     const params = Object.fromEntries(u.searchParams.entries());
-    const res = await this.fetchImpl(url, { headers: { "X-Api-Key": this.opts.apiKey, accept: "application/json" }, signal: AbortSignal.timeout(this.timeoutMs) });
+    let res = await this.fetchImpl(url, { headers: { "X-Api-Key": this.opts.apiKey, accept: "application/json" }, signal: AbortSignal.timeout(this.timeoutMs) });
+    if (res.status === 429) {
+      // one retry after a short wait: the hackathon key is rate-limited per minute and a desk's burst is three calls
+      const wait = Math.min(2500, Math.max(800, Number(res.headers.get("retry-after")) * 1000 || 1200));
+      await new Promise((r) => setTimeout(r, wait));
+      res = await this.fetchImpl(url, { headers: { "X-Api-Key": this.opts.apiKey, accept: "application/json" }, signal: AbortSignal.timeout(this.timeoutMs) });
+    }
     const ms = Math.round(performance.now() - t0);
     const call: RedactedRequest["calls"][number] = { name, url: `${u.origin}${u.pathname}`, params, ms, status: res.status };
     calls.push(call);
