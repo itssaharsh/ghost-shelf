@@ -343,10 +343,11 @@
         "observe: a recording of the deployed run exists and is linked in state.md"
       ],
       "rollback": "n/a",
-      "status": "doing",
-      "notes": "product-demo-video gets the URL and the script\n[2026-10-19 skip] merged into T14: one recording after the gates serves as the take; a video is optional for this event and the live URL is the judged artefact",
+      "status": "done",
+      "notes": "product-demo-video gets the URL and the script\n[2026-10-19 skip] merged into T14: one recording after the gates serves as the take; a video is optional for this event and the live URL is the judged artefact\n[2026-10-20 done] the final take (T14, E0099) recorded on the frozen build doubles as the backup: one recording, kept in demo/build and the Windows Downloads folder",
       "base": "753603a",
-      "started_after": 84
+      "started_after": 84,
+      "evidence": []
     },
     {
       "id": "T09",
