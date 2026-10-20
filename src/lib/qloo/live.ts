@@ -107,8 +107,14 @@ export class LiveQloo implements QlooClient {
     const params = Object.fromEntries(u.searchParams.entries());
     const res = await this.fetchImpl(url, { headers: { "X-Api-Key": this.opts.apiKey, accept: "application/json" }, signal: AbortSignal.timeout(this.timeoutMs) });
     const ms = Math.round(performance.now() - t0);
-    calls.push({ name, url: `${u.origin}${u.pathname}`, params, ms, status: res.status });
-    if (!res.ok) throw new QlooError(`Qloo answered ${res.status}`, res.status);
+    const call: RedactedRequest["calls"][number] = { name, url: `${u.origin}${u.pathname}`, params, ms, status: res.status };
+    calls.push(call);
+    if (!res.ok) {
+      // the body of an error is Qloo's own message (never the key); keep a short line of it for the panel
+      const body = (await res.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 160);
+      call.error = body || undefined;
+      throw new QlooError(`Qloo answered ${res.status}${body ? `: ${body}` : ""}`, res.status);
+    }
     return (await res.json()) as T;
   }
 

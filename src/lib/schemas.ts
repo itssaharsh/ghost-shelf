@@ -86,7 +86,7 @@ export type RecoverResult = {
 
 export type RedactedRequest = {
   provider: "qloo" | "sample";
-  calls: { name: string; url: string; params: Record<string, string>; ms?: number; status?: number }[];
+  calls: { name: string; url: string; params: Record<string, string>; ms?: number; status?: number; /** Qloo's own error line on a failed call, never the key */ error?: string }[];
   holdingsChunks?: number;
   responseExcerpt?: unknown;
   note?: string;

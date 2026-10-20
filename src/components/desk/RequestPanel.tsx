@@ -43,6 +43,7 @@ export function RequestPanel({ request, mode, onClose, onCopied }: { request?: R
                   {typeof c.ms === "number" && c.ms > 0 ? ` · ${c.ms} ms` : ""}
                 </div>
                 <div className="font-display text-ink-muted break-all">{c.url}</div>
+                {c.error && <div className="font-display text-danger break-all">{c.error}</div>}
                 <dl className="m-0 mt-1 grid grid-cols-[max-content_1fr] gap-x-3 gap-y-0.5 font-display">
                   {Object.entries(c.params).map(([k, v]) => (
                     <div key={k} className="contents">

@@ -67,3 +67,26 @@ test("reasonLine without explainability names the seeds without shares; gate ded
   const gated = gateToHoldings([{ entityId: "a", name: held.title, author: held.author }, { entityId: "b", name: held.title, author: held.author }], items);
   assert.equal(gated.length, 1);
 });
+
+test("recover: the holdings map (ISBN -> entity id) sends entity ids to Qloo and gates results back to ISBNs", async () => {
+  const { recover } = await import("../src/lib/recover");
+  const { collection } = await import("../src/lib/collection");
+  const item = collection.all()[0];
+  const map = new Map([[item.isbn13, "ENT-1"]]);
+  let sent: string[] | undefined;
+  const client = {
+    mode: "qloo" as const,
+    async resolveSeeds(seeds: { name: string; kind: "film" }[]) {
+      return { resolved: seeds.map((s) => ({ ...s, entityId: "SEED-1" })), unresolved: [], calls: [] };
+    },
+    async recommendBooks(_ids: string[], opts: { heldEntityIds?: string[]; excludeEntityIds?: string[] }) {
+      sent = opts.heldEntityIds;
+      return { books: [{ entityId: "ENT-1", name: "Some other name", author: "Nobody", isbn13: null, year: null, affinity: 0.9, explain: { "SEED-1": 1 } }], calls: [], holdingsChunks: 1, explainAvailable: true };
+    },
+  };
+  const r = await recover({ runId: "t", seeds: [{ name: "Dune", kind: "film" }] }, client, { entityMap: map });
+  assert.deepEqual(sent, ["ENT-1"]);
+  assert.equal(r.books.length, 1);
+  assert.equal(r.books[0].isbn13, item.isbn13);
+  assert.match(r.books[0].reason, /because you named Dune/);
+});

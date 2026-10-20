@@ -96,8 +96,10 @@ export async function recover(input: RecoverInput, client: QlooClient, deps: { i
     resolved = r.resolved;
     unresolved = r.unresolved;
     if (resolved.length === 0) return;
-    const heldEntityIds = deps.entityMap ? [...deps.entityMap.keys()] : undefined;
-    const rec = await c.recommendBooks(resolved.map((s) => s.entityId!), { heldEntityIds, excludeEntityIds: [], take: 50 });
+    // the map is ISBN -> Qloo entity id; Qloo wants the entity ids (the holdings gate), and excluded ISBNs become excluded entities
+    const heldEntityIds = deps.entityMap ? [...deps.entityMap.values()] : undefined;
+    const excludeEntityIds = deps.entityMap ? (input.excludeIsbns ?? []).map((i) => deps.entityMap!.get(i)).filter((x): x is string => Boolean(x)) : [];
+    const rec = await c.recommendBooks(resolved.map((s) => s.entityId!), { heldEntityIds, excludeEntityIds, take: 50 });
     calls.push(...rec.calls);
     books = rec.books;
     holdingsChunks = rec.holdingsChunks;
@@ -126,7 +128,8 @@ export async function recover(input: RecoverInput, client: QlooClient, deps: { i
 
   const exclude = new Set(input.excludeIsbns ?? []);
   const count = Math.max(1, Math.min(10, input.count ?? RECOVER_COUNT));
-  const gated = gateToHoldings(books, items, deps.entityMap).filter((g) => !exclude.has(g.item.isbn13) && !avoided(g.item, input.avoid ?? [])).slice(0, count);
+  const byEntity = deps.entityMap ? new Map([...deps.entityMap].map(([isbn13, entityId]) => [entityId, isbn13])) : undefined; // entity id -> ISBN for the gate
+  const gated = gateToHoldings(books, items, byEntity).filter((g) => !exclude.has(g.item.isbn13) && !avoided(g.item, input.avoid ?? [])).slice(0, count);
   const out: RecoveredBook[] = gated.map(({ book, item }) => {
     const r = reasonLine(resolved, book, explainAvailable);
     return {
