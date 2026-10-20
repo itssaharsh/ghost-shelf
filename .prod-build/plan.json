@@ -522,8 +522,13 @@
         "observe: the final recording exists and is linked"
       ],
       "rollback": "n/a",
-      "status": "todo",
-      "notes": "optional for this event (no video required); still made for the Devpost page"
+      "status": "done",
+      "notes": "optional for this event (no video required); still made for the Devpost page",
+      "evidence": [
+        "E0099",
+        "E0100",
+        "E0101"
+      ]
     },
     {
       "id": "T15",
@@ -545,10 +550,16 @@
         "python3 .prod-build/pb.py rules check"
       ],
       "rollback": "n/a",
-      "status": "doing",
+      "status": "done",
       "notes": "--live and --description passed at submit time",
       "base": "49873c0",
-      "started_after": 87
+      "started_after": 87,
+      "evidence": [
+        "E0104",
+        "E0105",
+        "E0106",
+        "E0107"
+      ]
     }
   ],
   "base": "503c828"
